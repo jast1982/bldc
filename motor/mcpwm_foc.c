@@ -748,6 +748,13 @@ void mcpwm_foc_set_pid_speed(float rpm) {
 	}
 }
 
+void mcpwm_foc_set_servo_speed(float rpm)
+{
+	get_motor_now()->m_servo_speed_set=rpm;
+	mcpwm_foc_set_pid_pos(get_motor_now()->m_pos_pid_now);
+	get_motor_now()->m_servo_ctrl_en=true;
+}
+
 /**
  * Use PID position control. Note that this only works when encoder support
  * is enabled.
@@ -761,6 +768,7 @@ void mcpwm_foc_set_pid_pos(float pos) {
 	get_motor_now()->m_pos_pid_set = pos;
 
 	if (get_motor_now()->m_state != MC_STATE_RUNNING) {
+		get_motor_now()->m_servo_ctrl_en=false;
 		get_motor_now()->m_motor_released = false;
 		get_motor_now()->m_state = MC_STATE_RUNNING;
 	}

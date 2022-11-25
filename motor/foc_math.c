@@ -337,11 +337,35 @@ void foc_svm(float alpha, float beta, uint32_t PWMFullDutyCycle,
 	*svm_sector = sector;
 }
 
+#define LIMIT360(f) {while (f>360.0) f-=360.0;while (f<0.0) f+=360.0;}
+#define LIMIT180(f) {while (f>180.0) f-=360.0;while (f<-180.0) f+=360.0;}
+#define MAX_ANGLE_DIFF 175.0f
 void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *motor) {
 	mc_configuration *conf_now = motor->m_conf;
 
 	float angle_now = motor->m_pos_pid_now;
 	float angle_set = motor->m_pos_pid_set;
+
+	//run speed control based on set speed
+
+	if (motor->m_servo_ctrl_en)
+	{
+		//update position based on rpm
+		//calculate change based on rpm and dt
+
+		float change=motor->m_servo_speed_set*((360.0f)/60.0f)*dt;
+		float newAngle=angle_set+change;
+		LIMIT360(newAngle);
+		float angleDiff=newAngle-angle_now;
+		LIMIT180(angleDiff);
+		if (angleDiff>MAX_ANGLE_DIFF)
+			newAngle=angle_now+MAX_ANGLE_DIFF;
+		if (angleDiff<-MAX_ANGLE_DIFF)
+			newAngle=angle_now-MAX_ANGLE_DIFF;
+		LIMIT360(newAngle);
+		angle_set=newAngle;
+	}
+
 
 	float p_term;
 	float d_term;

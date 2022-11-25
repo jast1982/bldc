@@ -86,7 +86,7 @@ typedef struct {
 	float m_input_voltage_filtered;
 	float m_input_voltage_filtered_slower;
 	float m_temp_override;
-
+	float m_servo_speed;
 	// Backup data counters
 	uint64_t m_odometer_last;
 	uint64_t m_runtime_last;
@@ -606,6 +606,26 @@ void mc_interface_set_pid_speed(float rpm) {
 	}
 
 	events_add("set_pid_speed", rpm);
+}
+
+void mc_interface_set_servo_speed(float erpm)
+{
+	SHUTDOWN_RESET();
+	volatile mc_configuration *conf = &motor_now()->m_conf;
+	motor_now()->m_servo_speed = erpm;
+	switch (conf->motor_type) {
+		case MOTOR_TYPE_BLDC:
+		case MOTOR_TYPE_DC:
+			//mcpwm_set_pid_pos(pos);
+			break;
+
+		case MOTOR_TYPE_FOC:
+			mcpwm_foc_set_servo_speed(erpm);
+			break;
+
+		default:
+			break;
+		}
 }
 
 void mc_interface_set_pid_pos(float pos) {

@@ -20,6 +20,7 @@
 #include "foc_math.h"
 #include "utils_math.h"
 #include <math.h>
+#include <commands.h>
 
 // See http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
 void foc_observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta,
@@ -337,40 +338,36 @@ void foc_svm(float alpha, float beta, uint32_t PWMFullDutyCycle,
 	*svm_sector = sector;
 }
 
-#define LIMIT360(f) {while (f>360.0) f-=360.0;while (f<0.0) f+=360.0;}
-#define LIMIT180(f) {while (f>180.0) f-=360.0;while (f<-180.0) f+=360.0;}
+#define LIMIT360(f) {while (f>360.0f) f-=360.0f;while (f<0.0f) f+=360.0f;}
+#define LIMIT180(f) {while (f>180.0f) f-=360.0f;while (f<-180.0f) f+=360.0f;}
+#define FSIGN(a) ( ( (a) < 0.0f )  ?  -1.0f   : 1.0f )
+#define ABS(a) ( ( (a) < 0.0f )  ?  -a   : a )
 #define MAX_ANGLE_DIFF 175.0f
+#define MAX_BREAK_ANGLE 720.0f
+#define MAX_BREAK_ANGLE_SPEED 25000.0f
+#define MAX_ACCELERATION_DEG_S 720.0f
+#define MAX_ACCELERATION (MAX_ACCELERATION_DEG_S/10000.0f)
+
 void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *motor) {
 	mc_configuration *conf_now = motor->m_conf;
 
 	float angle_now = motor->m_pos_pid_now;
 	float angle_set = motor->m_pos_pid_set;
+	static float lastAngle=0.0f;
 
-	//run speed control based on set speed
+	if (angle_now-lastAngle>180.0f)
+		 motor->m_servo_cur_pos_index-=1;
 
-	if (motor->m_servo_ctrl_en)
-	{
-		//update position based on rpm
-		//calculate change based on rpm and dt
+    if (angle_now-lastAngle<-180.0f)
+   		 motor->m_servo_cur_pos_index+=1;
 
-		float change=motor->m_servo_speed_set*((360.0f)/60.0f)*dt;
-		float newAngle=angle_set+change;
-		LIMIT360(newAngle);
-		float angleDiff=newAngle-angle_now;
-		LIMIT180(angleDiff);
-		if (angleDiff>MAX_ANGLE_DIFF)
-			newAngle=angle_now+MAX_ANGLE_DIFF;
-		if (angleDiff<-MAX_ANGLE_DIFF)
-			newAngle=angle_now-MAX_ANGLE_DIFF;
-		LIMIT360(newAngle);
-		angle_set=newAngle;
-	}
+    lastAngle=angle_now;
+
 
 
 	float p_term;
 	float d_term;
 	float d_term_proc;
-
 	// PID is off. Return.
 	if (motor->m_control_mode != CONTROL_MODE_POS) {
 		motor->m_pos_i_term = 0;
@@ -380,6 +377,80 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
 		motor->m_pos_d_filter_proc = 0.0;
 		return;
 	}
+	float speed=0.0f;
+
+	//run speed control based on set speed
+	if (motor->m_servo_ctrl_en)
+	{
+		//update position based on rpm
+
+		//calculate speed based on position
+		float breakAngle=ABS(RADPS2RPM_f(motor->m_motor_state.speed_rad_s)*MAX_BREAK_ANGLE/MAX_BREAK_ANGLE_SPEED);
+
+		float posDiff=motor->m_servo_desired_pos-motor->m_servo_set_pos;
+
+		if (ABS(posDiff)>breakAngle)
+			speed=FSIGN(posDiff)*motor->m_servo_max_speed;
+		else
+			speed=FSIGN(posDiff)*(ABS(posDiff)/breakAngle)*motor->m_servo_max_speed;
+		//calculate change based on rpm and dt
+
+		float change=speed*((360.0f)/(14.0*60.0f))*dt;
+
+		if (change > motor->m_servo_filtered_change+MAX_ACCELERATION)
+			motor->m_servo_filtered_change+=MAX_ACCELERATION;
+		else if (change < motor->m_servo_filtered_change-MAX_ACCELERATION)
+			motor->m_servo_filtered_change-=MAX_ACCELERATION;
+		else
+			motor->m_servo_filtered_change=change;
+
+		motor->m_servo_set_pos+=motor->m_servo_filtered_change;
+		motor->m_servo_current_pos=motor->m_servo_cur_pos_index*360.0f+angle_now;
+
+		float angleDiff=utils_angle_difference(motor->m_servo_set_pos, motor->m_servo_current_pos);
+
+		if (angleDiff>MAX_ANGLE_DIFF)
+		{
+			motor->m_servo_set_pos=motor->m_servo_current_pos+MAX_ANGLE_DIFF;
+			angleDiff=MAX_ANGLE_DIFF;
+		} else if (angleDiff<-MAX_ANGLE_DIFF)
+		{
+			motor->m_servo_set_pos=motor->m_servo_current_pos-MAX_ANGLE_DIFF;
+			angleDiff=-MAX_ANGLE_DIFF;
+		}
+
+		angle_set=angle_now+angleDiff;
+		LIMIT360(angle_set);
+
+		if (motor->m_servo_plot_en)
+		{
+			motor->m_servo_div_cnt++;
+			motor->m_servo_div_cnt%=200;
+
+			if (motor->m_servo_div_cnt==0)
+			{
+
+				commands_plot_set_graph(0);
+				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_desired_pos+(double)motor->m_servo_pos_offset);
+
+				commands_plot_set_graph(1);
+				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_current_pos+(double)motor->m_servo_pos_offset);
+
+				commands_plot_set_graph(2);
+
+				commands_send_plot_points(motor->m_hfi_plot_sample, (double)RADPS2RPM_f(motor->m_motor_state.speed_rad_s));
+
+				commands_plot_set_graph(3);
+				commands_send_plot_points(motor->m_hfi_plot_sample,(double)posDiff);
+//				commands_send_plot_points(motor->m_hfi_plot_sample,(double) (motor->m_motor_state.i_bus*motor->m_motor_state.v_bus));
+
+				motor->m_hfi_plot_sample++;
+			}
+
+		}
+
+	}
+
 
 	// Compute parameters
 	float error = utils_angle_difference(angle_set, angle_now);
@@ -398,6 +469,20 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
 	float kd = conf_now->p_pid_kd;
 	float kd_proc = conf_now->p_pid_kd_proc;
 
+	//prevents oscillating i-part at higher speeds
+	if (motor->m_servo_ctrl_en)
+	{
+		if (fabs(speed)>200)
+			ki=0.0f;
+
+		kp*=motor->m_servo_power/100.0f;
+		kd*=motor->m_servo_power/100.0f;
+		ki*=motor->m_servo_power/100.0f;
+		kd_proc*=motor->m_servo_power/100.0f;
+
+		if (!motor->m_servo_i_en)
+			ki=0.0f;
+	}
 	if (conf_now->p_pid_gain_dec_angle > 0.1) {
 		float min_error = conf_now->p_pid_gain_dec_angle / conf_now->p_pid_ang_div;
 		float error_abs = fabs(error);

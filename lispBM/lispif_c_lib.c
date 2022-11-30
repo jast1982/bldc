@@ -716,7 +716,12 @@ lbm_value ext_load_native_lib(lbm_value *args, lbm_uint argn) {
 		cif.cif.mc_set_duty = mc_interface_set_duty;
 		cif.cif.mc_set_duty_noramp = mc_interface_set_duty_noramp;
 		cif.cif.mc_set_pid_speed = mc_interface_set_pid_speed;
-		cif.cif.mc_set_servo_speed = mc_interface_set_servo_speed;
+		cif.cif.mc_set_servo_pos_speed = mc_interface_set_servo_pos_speed;
+		cif.cif.mc_set_servo_min_pos = mc_interface_set_servo_min_pos;
+		cif.cif.mc_set_servo_min_pos = mc_interface_set_servo_max_pos;
+		cif.cif.mc_reset_servo_pos = mc_interface_reset_servo_pos;
+		cif.cif.mc_set_servo_power = mc_interface_set_servo_power;
+
 		cif.cif.mc_set_pid_pos = mc_interface_set_pid_pos;
 		cif.cif.mc_set_current = mc_interface_set_current;
 		cif.cif.mc_set_brake_current = mc_interface_set_brake_current;

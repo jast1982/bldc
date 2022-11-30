@@ -38,7 +38,12 @@ void mcpwm_foc_set_duty(float dutyCycle);
 void mcpwm_foc_set_duty_noramp(float dutyCycle);
 void mcpwm_foc_set_pid_speed(float rpm);
 void mcpwm_foc_set_pid_pos(float pos);
-void mcpwm_foc_set_servo_speed(float rpm);
+void mcpwm_foc_set_servo_pos_speed(float pos, float rpm);
+void mcpwm_foc_set_servo_max_pos(float max);
+void mcpwm_foc_set_servo_min_pos(float min);
+void mcpwm_foc_set_servo_power(float power, float enableI);
+
+void mcpwm_foc_reset_servo_pos(float index);
 void mcpwm_foc_set_current(float current);
 void mcpwm_foc_release_motor(void);
 void mcpwm_foc_set_brake_current(float current);
@@ -58,6 +63,8 @@ float mcpwm_foc_get_rpm(void);
 float mcpwm_foc_get_rpm_fast(void);
 float mcpwm_foc_get_rpm_faster(void);
 float mcpwm_foc_get_tot_current(void);
+float mcpwm_foc_get_servo_pos(void);
+
 float mcpwm_foc_get_tot_current_filtered(void);
 float mcpwm_foc_get_abs_motor_current(void);
 float mcpwm_foc_get_abs_motor_current_unbalance(void);

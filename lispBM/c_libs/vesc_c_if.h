@@ -407,7 +407,11 @@ typedef struct {
 	void (*mc_set_duty)(float dutyCycle);
 	void (*mc_set_duty_noramp)(float dutyCycle);
 	void (*mc_set_pid_speed)(float rpm);
-	void (*mc_set_servo_speed)(float erpm);
+	void (*mc_set_servo_pos_speed)(float pos, float erpm);
+	void (*mc_set_servo_min_pos)(float pos);
+	void (*mc_set_servo_max_pos)(float pos);
+	void (*mc_reset_servo_pos)(float pos);
+	void (*mc_set_servo_power) (float power, float enableI);
 	void (*mc_set_pid_pos)(float pos);
 	void (*mc_set_current)(float current);
 	void (*mc_set_brake_current)(float current);

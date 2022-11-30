@@ -58,6 +58,7 @@ static void update_valpha_vbeta(motor_all_state_t *motor, float mod_alpha, float
 static void stop_pwm_hw(motor_all_state_t *motor);
 static void start_pwm_hw(motor_all_state_t *motor);
 static void terminal_tmp(int argc, const char **argv);
+static void terminal_plot_servo(int argc, const char **argv);
 static void terminal_plot_hfi(int argc, const char **argv);
 static void timer_update(motor_all_state_t *motor, float dt);
 static void input_current_offset_measurement( void );
@@ -359,6 +360,11 @@ void mcpwm_foc_init(mc_configuration *conf_m1, mc_configuration *conf_m2) {
 	update_hfi_samples(m_motor_2.m_conf->foc_hfi_samples, &m_motor_2);
 #endif
 
+	m_motor_1.m_servo_max_pos=360.0f;
+	m_motor_1.m_servo_min_pos=0.0f;
+	m_motor_1.m_servo_cur_pos_index=0.0f;
+
+
 	virtual_motor_init(conf_m1);
 
 	TIM_DeInit(TIM1);
@@ -566,6 +572,12 @@ void mcpwm_foc_init(mc_configuration *conf_m1, mc_configuration *conf_m2) {
 			"[en]",
 			terminal_plot_hfi);
 
+	terminal_register_command_callback(
+				"servo_plot_en",
+				"Enable HFI plotting. 0: off, 1: On",
+				"[en]",
+				terminal_plot_servo);
+
 	m_init_done = true;
 }
 
@@ -748,10 +760,55 @@ void mcpwm_foc_set_pid_speed(float rpm) {
 	}
 }
 
-void mcpwm_foc_set_servo_speed(float rpm)
+void mcpwm_foc_set_servo_max_pos(float max)
 {
-	get_motor_now()->m_servo_speed_set=rpm;
-	mcpwm_foc_set_pid_pos(get_motor_now()->m_pos_pid_now);
+	get_motor_now()->m_servo_max_pos=max;
+	commands_printf("Setting to max position: %5.3f \n",(double)max);
+}
+
+void mcpwm_foc_set_servo_min_pos(float min)
+{
+	get_motor_now()->m_servo_min_pos=min;
+	commands_printf("Setting to min position: %5.3f \n",(double)min);
+
+}
+
+void mcpwm_foc_reset_servo_pos(float pos)
+{
+		get_motor_now()->m_servo_pos_offset=pos-get_motor_now()->m_servo_current_pos;
+		commands_printf("Resetting to position: %5.3f \n",(double)pos);
+
+}
+
+void mcpwm_foc_set_servo_power(float power, float enableI)
+{
+	if (power>100.0f)
+		get_motor_now()->m_servo_power=100.0f;
+	else if (power<0.0f)
+		get_motor_now()->m_servo_power=0.0f;
+	else
+		get_motor_now()->m_servo_power=power;
+
+	get_motor_now()->m_servo_i_en=enableI;
+}
+
+void mcpwm_foc_set_servo_pos_speed(float pos, float rpm)
+{
+	float posCalib=pos-get_motor_now()->m_servo_pos_offset;
+	if (pos>get_motor_now()->m_servo_max_pos)
+		get_motor_now()->m_servo_desired_pos=get_motor_now()->m_servo_max_pos-get_motor_now()->m_servo_pos_offset;
+	else if (pos<get_motor_now()->m_servo_min_pos)
+			get_motor_now()->m_servo_desired_pos=get_motor_now()->m_servo_min_pos-get_motor_now()->m_servo_pos_offset;
+	else
+		get_motor_now()->m_servo_desired_pos=posCalib;
+
+	get_motor_now()->m_servo_max_speed=fabsf(rpm);
+	if (get_motor_now()->m_state != MC_STATE_RUNNING) {
+		get_motor_now()->m_servo_current_pos=get_motor_now()->m_servo_cur_pos_index*360.0f+get_motor_now()->m_pos_pid_now;
+		get_motor_now()->m_servo_set_pos=get_motor_now()->m_servo_current_pos;
+		get_motor_now()->m_servo_plot_en=true;
+		mcpwm_foc_set_pid_pos(get_motor_now()->m_pos_pid_now);
+	}
 	get_motor_now()->m_servo_ctrl_en=true;
 }
 
@@ -1133,6 +1190,12 @@ float mcpwm_foc_get_rpm_faster(void) {
 	return RADPS2RPM_f(get_motor_now()->m_speed_est_faster);
 }
 
+float mcpwm_foc_get_servo_pos(void)
+{
+	volatile motor_all_state_t *motor = get_motor_now();
+
+	return motor->m_servo_current_pos+motor->m_servo_pos_offset;
+}
 /**
  * Get the motor current. The sign of this value will
  * represent whether the motor is drawing (positive) or generating
@@ -4563,7 +4626,32 @@ static void start_pwm_hw(motor_all_state_t *motor) {
 	}
 }
 
-static void terminal_plot_hfi(int argc, const char **argv) {
+static void terminal_plot_servo(int argc, const char **argv) {
+
+	if (argc == 2) {
+		int d = -1;
+		sscanf(argv[1], "%d", &d);
+
+		if (d==1)
+		{
+			get_motor_now()->m_servo_plot_en=true;
+			get_motor_now()->m_hfi_plot_sample=0;
+			commands_init_plot("Sample", "Value");
+			commands_plot_add_graph("Desired Pos");
+			commands_plot_add_graph("Current Pos");
+			commands_plot_add_graph("Speed");
+			commands_plot_add_graph("Power");
+
+		}
+		else
+			get_motor_now()->m_servo_plot_en=false;
+
+
+	}
+}
+
+
+	static void terminal_plot_hfi(int argc, const char **argv) {
 	if (argc == 2) {
 		int d = -1;
 		sscanf(argv[1], "%d", &d);

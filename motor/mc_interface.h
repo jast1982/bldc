@@ -45,7 +45,12 @@ void mc_interface_set_duty(float dutyCycle);
 void mc_interface_set_duty_noramp(float dutyCycle);
 void mc_interface_set_pid_speed(float rpm);
 void mc_interface_set_pid_pos(float pos);
-void mc_interface_set_servo_speed(float erpm);
+void mc_interface_set_servo_min_pos(float pos);
+void mc_interface_set_servo_max_pos(float pos);
+void mc_interface_reset_servo_pos(float pos);
+void mc_interface_set_servo_pos_speed(float pos, float erpm);
+void mc_interface_set_servo_power(float power, float enableI);
+
 void mc_interface_set_current(float current);
 void mc_interface_set_brake_current(float current);
 void mc_interface_set_current_rel(float val);
@@ -70,6 +75,8 @@ float mc_interface_get_amp_hours_charged(bool reset);
 float mc_interface_get_watt_hours(bool reset);
 float mc_interface_get_watt_hours_charged(bool reset);
 float mc_interface_get_tot_current(void);
+float mc_interface_get_servo_pos(void);
+
 float mc_interface_get_tot_current_filtered(void);
 float mc_interface_get_tot_current_directional(void);
 float mc_interface_get_tot_current_directional_filtered(void);

@@ -1270,10 +1270,39 @@ static lbm_value ext_set_rpm(lbm_value *args, lbm_uint argn) {
 	return ENC_SYM_TRUE;
 }
 
-static lbm_value ext_set_servo_speed(lbm_value *args, lbm_uint argn) {
+static lbm_value ext_set_servo_pos_speed(lbm_value *args, lbm_uint argn) {
+	LBM_CHECK_ARGN_NUMBER(2);
+	timeout_reset();
+	mc_interface_set_servo_pos_speed(lbm_dec_as_float(args[0]),lbm_dec_as_float(args[1]));
+	return ENC_SYM_TRUE;
+}
+
+static lbm_value ext_set_servo_min_pos(lbm_value *args, lbm_uint argn) {
 	LBM_CHECK_ARGN_NUMBER(1);
 	timeout_reset();
-	mc_interface_set_servo_speed(lbm_dec_as_float(args[0]));
+	mc_interface_set_servo_min_pos(lbm_dec_as_float(args[0]));
+	return ENC_SYM_TRUE;
+}
+
+static lbm_value ext_set_servo_max_pos(lbm_value *args, lbm_uint argn) {
+	LBM_CHECK_ARGN_NUMBER(1);
+	timeout_reset();
+	mc_interface_set_servo_max_pos(lbm_dec_as_float(args[0]));
+	return ENC_SYM_TRUE;
+}
+
+
+static lbm_value ext_set_servo_power(lbm_value *args, lbm_uint argn) {
+	LBM_CHECK_ARGN_NUMBER(2);
+	timeout_reset();
+	mc_interface_set_servo_power(lbm_dec_as_float(args[0]),lbm_dec_as_float(args[1]));
+	return ENC_SYM_TRUE;
+}
+
+static lbm_value ext_reset_servo_pos(lbm_value *args, lbm_uint argn) {
+	LBM_CHECK_ARGN_NUMBER(1);
+	timeout_reset();
+	mc_interface_reset_servo_pos(lbm_dec_as_float(args[0]));
 	return ENC_SYM_TRUE;
 }
 
@@ -1299,6 +1328,13 @@ static lbm_value ext_foc_beep(lbm_value *args, lbm_uint argn) {
 }
 
 // Motor get commands
+
+
+
+static lbm_value ext_get_servo_pos(lbm_value *args, lbm_uint argn) {
+	(void)args; (void)argn;
+	return lbm_enc_float(mc_interface_get_servo_pos());
+}
 
 static lbm_value ext_get_current(lbm_value *args, lbm_uint argn) {
 	(void)args; (void)argn;
@@ -4387,12 +4423,17 @@ void lispif_load_vesc_extensions(void) {
 	lbm_add_extension("set-handbrake", ext_set_handbrake);
 	lbm_add_extension("set-handbrake-rel", ext_set_handbrake_rel);
 	lbm_add_extension("set-rpm", ext_set_rpm);
-	lbm_add_extension("set-servo-speed", ext_set_servo_speed);
+	lbm_add_extension("set-servo-pos-speed", ext_set_servo_pos_speed);
+	lbm_add_extension("set-servo-min-pos", ext_set_servo_min_pos);
+	lbm_add_extension("set-servo-max-pos", ext_set_servo_max_pos);
+	lbm_add_extension("set-servo-power", ext_set_servo_power);
+	lbm_add_extension("reset-servo-pos", ext_reset_servo_pos);
 	lbm_add_extension("set-pos", ext_set_pos);
 	lbm_add_extension("foc-openloop", ext_foc_openloop);
 	lbm_add_extension("foc-beep", ext_foc_beep);
 
 	// Motor get commands
+	lbm_add_extension("get-servo-pos", ext_get_servo_pos);
 	lbm_add_extension("get-current", ext_get_current);
 	lbm_add_extension("get-current-dir", ext_get_current_dir);
 	lbm_add_extension("get-current-in", ext_get_current_in);

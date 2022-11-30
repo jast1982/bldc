@@ -201,9 +201,22 @@ typedef struct {
 	float p_inv_ld_lq; // (1.0/lq - 1.0/ld)
 	float p_v2_v3_inv_avg_half; // (0.5/ld + 0.5/lq)
 
-	// servo speed control vars
-	float m_servo_speed_set;
+	// servo speed control vars#
+	float m_servo_max_pos;
+	float m_servo_min_pos;
+	float m_servo_desired_pos;
+	float m_servo_max_speed;
 	bool m_servo_ctrl_en;
+	float m_servo_current_pos;
+	float m_servo_set_pos;
+	float m_servo_cur_pos_index;
+	float m_servo_power;
+	bool m_servo_i_en;
+	float m_servo_pos_offset;
+	float m_servo_filtered_change;
+
+	bool m_servo_plot_en;
+	uint8_t m_servo_div_cnt;
 } motor_all_state_t;
 
 // Functions

@@ -9,7 +9,7 @@
 (def minAdcValFiltered 0.0)
 
 ;calibration parameters
-(def maxAngleDiffCalib 20.0)
+(def maxAngleDiffCalib 25.0)
 (def desiredChangeCalib (* 2.0 invert))
 (def runway 106.5)
 (def inhibitLimitCnt 0)

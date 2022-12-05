@@ -1,3 +1,5 @@
+;; this need to be -1 if config->foc->encoder->inverted=true, else 1
+(def invert -1)
 
 ;position sensor parameters
 (def maxPosFiltered 0.0)
@@ -7,11 +9,10 @@
 (def minAdcValFiltered 0.0)
 
 ;calibration parameters
-(def maxAngleDiffCalib 15.0)
-(def desiredChangeCalib 2.0)
+(def maxAngleDiffCalib 20.0)
+(def desiredChangeCalib (* 2.0 invert))
 (def runway 106.5)
 (def inhibitLimitCnt 0)
-
 ;run parameters
 (def inLimitCnt 0)
 
@@ -90,19 +91,19 @@
             (def mvPerMm (/ (* (- maxAdcValFiltered minAdcValFiltered) 1000.0) runway) )            
             (def degPerMm (/ (- maxPosFiltered minPosFiltered) runway) )            
             (def degPerMm (abs degPerMm))
-            (print (str-from-n minAdcValFiltered "MinAdc: %.3f"))
-            (print (str-from-n maxAdcValFiltered "MaxAdc: %.3f"))
-            (print (str-from-n minPosFiltered "MinPos: %.3f"))
-            (print (str-from-n maxPosFiltered "MaxPos: %.3f"))
-            (print (str-from-n mvPerMm "Scale (mv/mm): %.3f"))
-            (print (str-from-n degPerMm "Scale (deg/mm): %.3f"))
+            
+            (print (str-from-n minAdcValFiltered "(def adcMin %.3f)"))
+            (print (str-from-n maxAdcValFiltered "(def adcMax %.3f)"))
+            (print (str-from-n mvPerMm "(def mvPerMm %.3f)"))
+            (print (str-from-n degPerMm "(def degPerMm %.3f)"))
+            (print (str-from-n (+ minAdcValFiltered (/ (- maxAdcValFiltered minAdcValFiltered) 2) )"(def adcZero %.3f)"))
         ))
         
         
     ))
 
 ;read encoder, flip position to match vesc internal position
-        (def currentAngle (* (get-encoder) -1))        
+        (def currentAngle  (* (get-encoder) invert) )        
         (if (< currentAngle 0) (def currentAngle (+ currentAngle 360.0)))
 
 ;update current global position

@@ -775,8 +775,12 @@ void mcpwm_foc_set_servo_min_pos(float min)
 
 void mcpwm_foc_reset_servo_pos(float pos)
 {
-		get_motor_now()->m_servo_pos_offset=pos-get_motor_now()->m_servo_current_pos;
-		commands_printf("Resetting to position: %5.3f \n",(double)pos);
+
+    	get_motor_now()->m_servo_cur_pos_index=floor(pos/360.0);
+		get_motor_now()->m_servo_set_pos=pos;
+		get_motor_now()->m_servo_desired_pos=pos;
+
+		commands_printf("Resetting to position: %5.3f at index %3.2f\n",(double)pos, (double)get_motor_now()->m_servo_cur_pos_index);
 
 }
 
@@ -789,27 +793,48 @@ void mcpwm_foc_set_servo_power(float power, float enableI)
 	else
 		get_motor_now()->m_servo_power=power;
 
-	get_motor_now()->m_servo_i_en=enableI;
+	get_motor_now()->m_servo_i_en=enableI>0.0f?true:false;
+	if (get_motor_now()->m_servo_i_en)
+		commands_printf("Setting servo power to %5.3f with I-Part enabled \n",(double)power);
+	else
+		commands_printf("Setting servo power to %5.3f with I-Part NOT enabled \n",(double)power);
 }
 
 void mcpwm_foc_set_servo_pos_speed(float pos, float rpm)
 {
-	float posCalib=pos-get_motor_now()->m_servo_pos_offset;
 	if (pos>get_motor_now()->m_servo_max_pos)
-		get_motor_now()->m_servo_desired_pos=get_motor_now()->m_servo_max_pos-get_motor_now()->m_servo_pos_offset;
+		get_motor_now()->m_servo_desired_pos=get_motor_now()->m_servo_max_pos;
 	else if (pos<get_motor_now()->m_servo_min_pos)
-			get_motor_now()->m_servo_desired_pos=get_motor_now()->m_servo_min_pos-get_motor_now()->m_servo_pos_offset;
+			get_motor_now()->m_servo_desired_pos=get_motor_now()->m_servo_min_pos;
 	else
-		get_motor_now()->m_servo_desired_pos=posCalib;
+		get_motor_now()->m_servo_desired_pos=pos;
 
 	get_motor_now()->m_servo_max_speed=fabsf(rpm);
-	if (get_motor_now()->m_state != MC_STATE_RUNNING) {
-		get_motor_now()->m_servo_current_pos=get_motor_now()->m_servo_cur_pos_index*360.0f+get_motor_now()->m_pos_pid_now;
-		get_motor_now()->m_servo_set_pos=get_motor_now()->m_servo_current_pos;
-		get_motor_now()->m_servo_plot_en=true;
+
+
+	if ((get_motor_now()->m_control_mode != CONTROL_MODE_POS) || (get_motor_now()->m_state != MC_STATE_RUNNING))
+	{
+		if (!get_motor_now()->m_servo_ctrl_en)
+		{
+			get_motor_now()->m_servo_current_pos=get_motor_now()->m_servo_cur_pos_index*360.0f+get_motor_now()->m_pos_pid_now;
+			get_motor_now()->m_servo_set_pos=get_motor_now()->m_servo_current_pos;
+		}
 		mcpwm_foc_set_pid_pos(get_motor_now()->m_pos_pid_now);
+		get_motor_now()->m_servo_ctrl_en=true;
+		get_motor_now()->m_servo_plot_en=true;
+		if (get_motor_now()->m_state!=MC_STATE_RUNNING)
+		{
+			get_motor_now()->m_hfi_plot_sample=0;
+			commands_init_plot("Sample", "Value");
+			commands_plot_add_graph("Desired Pos");
+			commands_plot_add_graph("Current Pos");
+			commands_plot_add_graph("Speed");
+			commands_plot_add_graph("Power");
+
+		}
+
 	}
-	get_motor_now()->m_servo_ctrl_en=true;
+
 }
 
 /**
@@ -1194,7 +1219,7 @@ float mcpwm_foc_get_servo_pos(void)
 {
 	volatile motor_all_state_t *motor = get_motor_now();
 
-	return motor->m_servo_current_pos+motor->m_servo_pos_offset;
+	return motor->m_servo_current_pos;
 }
 /**
  * Get the motor current. The sign of this value will

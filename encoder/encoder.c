@@ -592,7 +592,7 @@ static void terminal_encoder(int argc, const char **argv) {
 	case SENSOR_PORT_MODE_AS5047_SPI:
 		commands_printf("SPI encoder value: %d, errors: %d, error rate: %.3f %%",
 				encoder_cfg_as504x.state.spi_val, 
-				encoder_cfg_as504x.state.spi_communication_error_count,
+				encoder_cfg_as504x.state.spi_error_cnt,
 				(double)(encoder_cfg_as504x.state.spi_error_rate * 100.0));
 
 		if (encoder_cfg_as504x.sw_spi.mosi_gpio != NULL) {

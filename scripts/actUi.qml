@@ -65,6 +65,20 @@ Item {
                 nibColor: value >= 0 ? posColor: negColor
             }
         }
+        RowLayout
+        {
+            Layout.fillWidth: true
+        Label {
+                id: slider1Label
+                 Layout.fillWidth: true
+                text: "Position "
+            }
+        Label {
+                id: slider2Label
+                 Layout.fillWidth: true
+                text: "Fine Position"
+            }
+        }
         RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -77,13 +91,38 @@ Item {
             }
            
             Slider {
-                id:slider2
+                id:slider3
                 Layout.fillWidth: true
-                from: 0
-                to: 100
-                value: 10
+                from: -300
+                to: 300
+                value: 0
             }
         }
+        Label{
+            id: speedSliderLabel
+            text: "Speed:"
+        }
+        Slider{
+            id: slider2
+            from: 0
+            to: 100
+            value: 10
+        }
+        RowLayout{
+            Label {
+                id: setPosLabel
+                text: "setPos: 0"
+            }
+            Label {
+                id: posLabel
+                text: "position: 0"
+            }  
+            Label {
+                id: speedLabel
+                text: "Speed: 0%"
+            }        
+        }
+        
         RowLayout{
              CheckBox {
                 id: activeBox
@@ -94,10 +133,7 @@ Item {
              Label {
                 id: statusLabel
                 text: "Status:Inactive"
-            }Label {
-                id: speedLabel
-                text: "Speed: 0%"
-            }        
+            }      
         }
         RowLayout {
             Button{
@@ -107,15 +143,7 @@ Item {
                    activeBox.checked=true
                 }
             }
-            Button{
-                Layout.fillWidth: true
-                text: "Stop"
-                onClicked: {
-                    slider1.value=0
-      
 
-                }
-            }
             Button{
                 Layout.fillWidth: true
                 text: "Deactivate"
@@ -133,12 +161,12 @@ Item {
         
         onTriggered: {
            speedLabel.text="Speed:" + slider2.value.toFixed(1) +"%"
-  
+            setPosLabel.text="setPos: "+(slider1.value+slider3.value/100).toFixed(3)
             var buffer = new ArrayBuffer(8);
             var dv = new DataView(buffer);
-            dv.setUint16(0,slider1.value*100)
-            dv.setUint16(2,slider1.value*100)
-            dv.setUint16(4,slider1.value*100)
+            dv.setUint16(0,slider1.value*100+slider3.value)
+            dv.setUint16(2,slider1.value*100+slider3.value)
+            dv.setUint16(4,slider1.value*100+slider3.value)
             dv.setUint8(6, slider2.value)
             dv.setUint8(7, activeBox.checked?7:0)
             mCommands.sendCustomAppData(buffer)
@@ -164,7 +192,7 @@ Item {
                 text="Inactive"
             
             statusLabel.text="Status: "+text
-            
+            posLabel.text="Pos: "+pos
             
         }
     }

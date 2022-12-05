@@ -214,7 +214,6 @@ typedef struct {
 	float m_servo_cur_pos_index;
 	float m_servo_power;
 	bool m_servo_i_en;
-	float m_servo_pos_offset;
 	float m_servo_filtered_change;
 
 	bool m_servo_plot_en;

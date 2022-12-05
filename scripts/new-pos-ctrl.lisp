@@ -6,19 +6,19 @@
 (def maxPosMm 45.0)
 
 ;calibration output from calib script
-; calibration of the actuator with USB
-(def adcMin 0.332)
-(def adcMax 2.978)
-(def mvPerMm 24.850)
-(def degPerMm 193.096)
-(def adcZero 1.655)
+; calibration of the right actuator
+(def adcMin 0.446)
+(def adcMax 3.089)
+(def mvPerMm 24.818)
+(def degPerMm 193.030)
+(def adcZero 1.767)
 
-;calibration of the actuator with bluetooth
-;(def adcMin 0.215)
-;(def adcMax 2.848)
-;(def mvPerMm 24.726)
-;(def degPerMm 192.026)
-;(def adcZero 1.532)
+;calibration of the left actuator
+;(def adcMin 0.540)
+;(def adcMax 3.174)
+;(def mvPerMm 24.729)
+;(def degPerMm 192.226)
+;(def adcZero 1.857)
 
 ;calibration output end
 
@@ -133,7 +133,7 @@
         (def #posSense (- (- runway (/ (* (- #positionSensor adcMin) 1000) mvPerMm)) (/ runway 2.0)))
         (def posDiff (abs (- #posSense currentPosMm posDiff0)))
         
-        (bufset-i16 data-out 0 currentPosMm)
+        (bufset-i16 data-out 0 (* currentPosMm 100))
         (bufset-i16 data-out 2 (* currentIn vbus))
         (bufset-i16 data-out 4 rpm)
        

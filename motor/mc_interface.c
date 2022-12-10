@@ -624,6 +624,25 @@ void mc_interface_set_servo_min_pos(float min)
 		}
 }
 
+void mc_interface_en_servo_can(char en, char id, char errorCode)
+{
+	volatile mc_configuration *conf = &motor_now()->m_conf;
+		switch (conf->motor_type) {
+			case MOTOR_TYPE_BLDC:
+			case MOTOR_TYPE_DC:
+				//mcpwm_set_pid_pos(pos);
+				break;
+
+			case MOTOR_TYPE_FOC:
+				mcpwm_foc_en_servo_can(en, id, errorCode);
+				break;
+
+			default:
+				break;
+			}
+
+}
+
 void mc_interface_set_servo_max_pos(float max)
 {
 	SHUTDOWN_RESET();

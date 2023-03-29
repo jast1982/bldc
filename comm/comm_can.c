@@ -41,7 +41,6 @@
 #include "encoder_cfg.h"
 #include "servo_dec.h"
 #include "utils.h"
-#include "mcpwm_foc.h"
 #ifdef USE_LISPBM
 #include "lispif.h"
 #endif
@@ -343,60 +342,6 @@ void comm_can_transmit_sid(uint32_t id, const uint8_t *data, uint8_t len) {
 	(void)len;
 #endif
 }
-
-#define DEG_PER_MM 193.000f
-void comm_can_handle_servo(uint32_t canId, uint8_t* data, uint8_t len)
-{
-	if (mcpwm_foc_get_motor_state()->m_servo_can_en)
-	{
-		if ((canId==0xE020) && (len==8))
-		{
-			int32_t temp;
-			float fTemp;
-			uint8_t dataOut[8];
-			if (mcpwm_foc_get_motor_state()->m_servo_can_id==0x11)
-				mcpwm_foc_get_motor_state()->m_servo_can_posSet=data[2]<<8|data[3];
-			else if (mcpwm_foc_get_motor_state()->m_servo_can_id==0x12)
-				mcpwm_foc_get_motor_state()->m_servo_can_posSet=data[4]<<8|data[5];
-			temp=data[6];
-
-			mcpwm_foc_get_motor_state()->m_servo_can_speedSet=temp;
-
-			/*if (data[7]&0x01)
-				mc_interface_set_servo_pos_speed(mcpwm_foc_get_motor_state()->m_servo_can_posSet, mcpwm_foc_get_motor_state()->m_servo_can_speedSet);
-			else
-				mc_interface_set_handbrake(0.5f);
-*/
-			fTemp=mcpwm_foc_get_motor_state()->m_servo_current_pos*DEG_PER_MM;
-			fTemp*=100.0f;
-			temp=(int32_t)fTemp;
-			dataOut[0]=(temp&0xff);
-			dataOut[1]=(temp&0xFF00>>8);
-
-			fTemp=mcpwm_foc_get_rpm();
-			fTemp*=6.0f;
-			fTemp/=10000.0f;
-			temp=(int32_t)fTemp;
-
-			dataOut[2]=(temp&0xff);
-			dataOut[3]=(temp&0xFF00>>8);
-
-			fTemp=mcpwm_foc_get_tot_current_in()*mc_interface_get_input_voltage_filtered();
-			fTemp*=100.0f;
-			temp=(int32_t)fTemp;
-			dataOut[4]=(temp&0xff);
-			dataOut[5]=(temp&0xFF00>>8);
-
-			dataOut[6]=data[7]&0x01;
-			dataOut[7]=mcpwm_foc_get_motor_state()->m_servo_can_errorCode;
-
-			comm_can_transmit_eid(mcpwm_foc_get_motor_state()->m_servo_can_id|0xF000,&dataOut[0],8);
-
-		}
-	}
-}
-
-
 
 /**
  * Set function to be called when standard CAN frames are received.
@@ -1370,8 +1315,6 @@ static THD_FUNCTION(cancom_process_thread, arg) {
 #ifdef USE_LISPBM
 					if (!eid_cb_used) {
 						lispif_process_can(rxmsg.EID, rxmsg.data8, rxmsg.DLC, true);
-						comm_can_handle_servo(rxmsg.EID, rxmsg.data8, rxmsg.DLC);
-
 					}
 #else
 					(void)eid_cb_used;
@@ -1397,8 +1340,6 @@ static THD_FUNCTION(cancom_process_thread, arg) {
 #ifdef USE_LISPBM
 						lispif_process_can(rxmsg.EID, rxmsg.data8, rxmsg.DLC, true);
 #endif
-						comm_can_handle_servo(rxmsg.EID, rxmsg.data8, rxmsg.DLC);
-
 					}
 				}
 			} else {

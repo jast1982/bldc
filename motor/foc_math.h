@@ -216,13 +216,6 @@ typedef struct {
 
 	bool m_servo_plot_en;
 	uint8_t m_servo_div_cnt;
-	char m_servo_can_errorCode;
-	bool m_servo_can_en;
-	uint8_t m_servo_can_id;
-
-	int16_t m_servo_can_posSet;
-	uint16_t m_servo_can_speedSet;
-
 } motor_all_state_t;
 
 // Functions
@@ -239,6 +232,5 @@ float foc_correct_hall(float angle, float dt, motor_all_state_t *motor, int hall
 void foc_run_fw(motor_all_state_t *motor, float dt);
 void foc_hfi_adjust_angle(float ang_err, motor_all_state_t *motor, float dt);
 void foc_precalc_values(motor_all_state_t *motor);
-void foc_can_eid_callback(uint32_t canId, uint8_t* data, uint8_t len);
 
 #endif /* FOC_MATH_H_ */

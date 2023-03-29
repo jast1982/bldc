@@ -760,14 +760,6 @@ void mcpwm_foc_set_pid_speed(float rpm) {
 	}
 }
 
-void mcpwm_foc_en_servo_can(char en, char id, char errorCode)
-{
-	get_motor_now()->m_servo_can_en=en;
-	get_motor_now()->m_servo_can_errorCode=errorCode;
-	get_motor_now()->m_servo_can_id=id;
-
-}
-
 void mcpwm_foc_set_servo_max_pos(float max)
 {
 	get_motor_now()->m_servo_max_pos=max;
@@ -779,11 +771,6 @@ void mcpwm_foc_set_servo_min_pos(float min)
 	get_motor_now()->m_servo_min_pos=min;
 	commands_printf("Setting to min position: %5.3f \n",(double)min);
 
-}
-
-motor_all_state_t* mcpwm_foc_get_motor_state(void)
-{
-	return get_motor_now();
 }
 
 void mcpwm_foc_reset_servo_pos(float pos)

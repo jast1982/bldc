@@ -22,7 +22,6 @@
 
 #include "conf_general.h"
 #include "datatypes.h"
-#include "foc_math.h"
 #include <stdbool.h>
 
 // Functions
@@ -40,12 +39,10 @@ void mcpwm_foc_set_duty_noramp(float dutyCycle);
 void mcpwm_foc_set_pid_speed(float rpm);
 void mcpwm_foc_set_pid_pos(float pos);
 void mcpwm_foc_set_servo_pos_speed(float pos, float rpm);
-void mcpwm_foc_en_servo_can(char en, char id, char errorCode);
-
 void mcpwm_foc_set_servo_max_pos(float max);
 void mcpwm_foc_set_servo_min_pos(float min);
 void mcpwm_foc_set_servo_power(float power, float enableI);
-motor_all_state_t* mcpwm_foc_get_motor_state(void);
+
 void mcpwm_foc_reset_servo_pos(float index);
 void mcpwm_foc_set_current(float current);
 void mcpwm_foc_release_motor(void);

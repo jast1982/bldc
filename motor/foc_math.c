@@ -338,7 +338,6 @@ void foc_svm(float alpha, float beta, uint32_t PWMFullDutyCycle,
 	*svm_sector = sector;
 }
 
-
 #define LIMIT360(f) {while (f>360.0f) f-=360.0f;while (f<0.0f) f+=360.0f;}
 #define LIMIT180(f) {while (f>180.0f) f-=360.0f;while (f<-180.0f) f+=360.0f;}
 #define FSIGN(a) ( ( (a) < 0.0f )  ?  -1.0f   : 1.0f )
@@ -408,10 +407,10 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
     			{
 
     				commands_plot_set_graph(0);
-    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_can_posSet);
+    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_desired_pos);
 
     				commands_plot_set_graph(1);
-    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_can_speedSet);
+    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_current_pos);
 
     				commands_plot_set_graph(2);
     				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_set_pos);

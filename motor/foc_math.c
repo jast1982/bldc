@@ -342,13 +342,13 @@ void foc_svm(float alpha, float beta, uint32_t PWMFullDutyCycle,
 #define LIMIT180(f) {while (f>180.0f) f-=360.0f;while (f<-180.0f) f+=360.0f;}
 #define FSIGN(a) ( ( (a) < 0.0f )  ?  -1.0f   : 1.0f )
 #define ABS(a) ( ( (a) < 0.0f )  ?  -a   : a )
-#define MAX_ANGLE_DIFF 175.0f
+#define MAX_ANGLE_DIFF 90.0f
 #define MAX_BREAK_ANGLE 960.0f
 #define MAX_BREAK_ANGLE_SPEED 25000.0f
 #define MAX_ACCELERATION_DEG_S2 500.0f
 #define MAX_ACCELERATION (MAX_ACCELERATION_DEG_S2/10000.0f)
 #define MAX_ANGLE_CHANGE (360.0f*150000.0f/14.0f/60.0f/10000.0f) //assuming 100.000erpm as max speed
-#define ANGLE_INPUT_FILTER_CONSTANT (0.8f)
+#define ANGLE_INPUT_FILTER_CONSTANT (0.0f)
 
 void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *motor) {
 	mc_configuration *conf_now = motor->m_conf;
@@ -358,9 +358,9 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
 
 	//filter angle now, because of encoder spikes which sometimes happen...
 	float angle_now = motor->m_pos_pid_now;
-	static float lastAngleNow = 0.0f;
+	//static float lastAngleNow = 0.0f;
 
-	//need to filter the difference, otherwise it doesn't work around 0/360deg
+	/*//need to filter the difference, otherwise it doesn't work around 0/360deg
 	float angleNowDiff=angle_now-lastAngleNow;
 
 	//handle difference correctly around 0
@@ -379,11 +379,11 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
 	angleNowDiffFiltered=ANGLE_INPUT_FILTER_CONSTANT*angleNowDiffFiltered+(1.0f-ANGLE_INPUT_FILTER_CONSTANT)*angleNowDiff;
 
 	//finally update the current measure angle
-	angle_now=lastAngleNow+angleNowDiffFiltered;
+	angle_now=lastAngleNow+angleNowDiffFiltered;*/
 
-    LIMIT360(angle_now);
+    //LIMIT360(angle_now);
 
-	lastAngleNow=angle_now;
+//	lastAngleNow=angle_now;
 
 
 	if (angle_now-lastAngle>180.0f)

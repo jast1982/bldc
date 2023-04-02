@@ -3828,10 +3828,10 @@ void lispif_load_vesc_extensions(void) {
 	}
 
 #ifdef HW_ADC_EXT_GPIO
-	palSetPadMode(HW_ADC_EXT_GPIO, HW_ADC_EXT_PIN, PAL_MODE_INPUT_ANALOG);
+	//palSetPadMode(HW_ADC_EXT_GPIO, HW_ADC_EXT_PIN, PAL_MODE_INPUT_ANALOG);
 #endif
 #ifdef HW_ADC_EXT2_GPIO
-	palSetPadMode(HW_ADC_EXT2_GPIO, HW_ADC_EXT2_PIN, PAL_MODE_INPUT_ANALOG);
+	//palSetPadMode(HW_ADC_EXT2_GPIO, HW_ADC_EXT2_PIN, PAL_MODE_INPUT_ANALOG);
 #endif
 
 	lbm_add_symbol_const("hw-esc", &sym_hw_esc);

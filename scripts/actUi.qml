@@ -26,11 +26,10 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredWidth: gaugeColumn.width * 0.45
                 Layout.preferredHeight: width
-                maximumValue: 55
-                minimumValue: -55
+                maximumValue: 100
+                minimumValue: -100
                 tickmarkScale: 1
                 labelStep: 5
-                value: slider1.value
                 unitText: "mm"
                 typeText: "Position"
             }
@@ -52,8 +51,8 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredWidth: gaugeColumn.width * 0.45
                 Layout.preferredHeight: width
-                maximumValue: 30
-                minimumValue: -30
+                maximumValue: 80
+                minimumValue: -80
                 tickmarkScale: 1
                 labelStep:5
                 value: 0
@@ -85,8 +84,8 @@ Item {
             Slider {
                 id:slider1
                 Layout.fillWidth: true
-                from: -55
-                to: 55
+                from: -80
+                to: 80
                 value: 0
             }
            
@@ -182,9 +181,9 @@ Item {
             var power = dv.getInt16(ind); ind += 2
             var speed = dv.getInt16(ind); ind += 2
             var flags = dv.getInt8(ind)
-            posGauge.value=pos
+            posGauge.value=pos/100
             powerGauge.value=power
-            speedGauge.value=6.0*(speed/10000)
+            speedGauge.value=speed/10
             var text=""
             if (flags&0x01)
                 text="Active"

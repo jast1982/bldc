@@ -1,5 +1,4 @@
 ;; this need to be -1 if config->foc->encoder->inverted=true, else 1
-(def invert -1)
 
 ;position sensor parameters
 (def maxPosFiltered 0.0)
@@ -9,9 +8,8 @@
 (def minAdcValFiltered 0.0)
 
 ;calibration parameters
-(def maxAngleDiffCalib 25.0)
-(def desiredChangeCalib (* 2.0 invert))
-(def runway 106.5)
+(def maxAngleDiffCalib 100.0)
+(def runway 147.5)
 (def inhibitLimitCnt 0)
 ;run parameters
 (def inLimitCnt 0)
@@ -26,16 +24,21 @@
 ;min: 0.463
 ;max: 3.37
 
+(reset-servo-pos 0)
+
+(set-servo-min-pos -100000)
+(set-servo-max-pos 100000)
+(set-servo-power 40 0)    
+
 (loopwhile t
     (progn
         
 ; read adc of position sensor
-   (def positionSensor (get-adc 0))
+   (def positionSensor (get-adc 3))
 
 ; test program
     (if (= initState 0) ( progn
-        (def desiredPos (- desiredPos desiredChangeCalib))        
-        (def maxAngleDiff maxAngleDiffCalib)
+        (def desiredPos 1000000)        
         
         (if (< inhibitLimitCnt 200) (progn (def inLimintCnt 0) (def inhibitLimitCnt (+ inhibitLimitCnt 1))))
         
@@ -64,9 +67,8 @@
     ))
 ; goto zero position    
     (if (= initState 1) (progn
-        (def desiredPos (+ desiredPos desiredChangeCalib))        
-        (def maxAngleDiff maxAngleDiffCalib)
-   
+        (def desiredPos -1000000)        
+      
          (if (< inhibitLimitCnt 200) (progn (def inLimintCnt 0) (def inhibitLimitCnt (+ inhibitLimitCnt 1))))
   
           
@@ -103,38 +105,15 @@
     ))
 
 ;read encoder, flip position to match vesc internal position
-        (def currentAngle  (* (get-encoder) invert) )        
-        (if (< currentAngle 0) (def currentAngle (+ currentAngle 360.0)))
-
-;update current global position
-        (def angleDiff (- currentAngle lastAngle))
-        
-        (if (> angleDiff 180.0) (def currentPosIdx (- currentPosIdx 1)))
-        (if (< angleDiff -180.0) (def currentPosIdx (+ currentPosIdx 1)))
-        
-        (def currentPos (* currentPosIdx 360))
-        (def currentPos (+ currentPos currentAngle))
+       
+       
         
  
-        (def posDiff (- desiredPos currentPos))
+        (def currentPos (get-servo-pos))
+        (if (> (get-current) 15.0) (def inLimitCnt (+ inLimitCnt 1)))
+    
         
-        (if (and (> posDiff (* maxAngleDiff -1)) (< posDiff maxAngleDiff)) (def inLimitCnt 0))
-        
-        (if (> posDiff maxAngleDiff) (progn
-             (def inLimitCnt (+ inLimitCnt 1))
-             (def desiredPos (+ currentPos maxAngleDiff))))
-           
-        (if (< posDiff (* maxAngleDiff -1)) (progn
-             (def inLimitCnt (+ inLimitCnt 1))
-             (def desiredPos (- currentPos maxAngleDiff))))
-
-       
-        (def desiredAngle (mod desiredPos 360.0))
-        
-        (def lastPos currentPos)
-        (def lastAngle currentAngle)
-        
-        (if (< initState 128) (set-pos desiredAngle) (set-handbrake 0.5))
+        (if (< initState 128)  (set-servo-pos-speed desiredPos 800) (set-handbrake 0.5))
 
         (sleep 0.001)
         ))

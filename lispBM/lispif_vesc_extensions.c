@@ -4091,6 +4091,9 @@ void lispif_process_can(uint32_t can_id, uint8_t *data8, int len, bool is_ext) {
 		return;
 	}
 
+	if (can_id!=0xE020) //hack for the actuators to only send our relevant can packets to lisp
+		return;
+
 	lbm_flat_value_t v;
 	if (lbm_start_flatten(&v, 50 + len)) {
 		f_cons(&v);

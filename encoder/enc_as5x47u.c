@@ -247,6 +247,7 @@ static void as5x47u_spi_err_callback(SPIDriver *pspi) {
 	}
 }
 
+
 bool enc_as5x47u_init(AS5x47U_config_t *cfg) {
 	if (cfg->spi_dev == NULL) {
 		return false;

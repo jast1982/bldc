@@ -180,15 +180,30 @@ Item {
             var pos = dv.getInt16(ind); ind += 2
             var power = dv.getInt16(ind); ind += 2
             var speed = dv.getInt16(ind); ind += 2
-            var flags = dv.getInt8(ind)
+            var flags = dv.getInt8(ind);  ind += 1
+            var err = dv.getInt8(ind)
             posGauge.value=pos/100
             powerGauge.value=power
             speedGauge.value=speed/10
             var text=""
-            if (flags&0x01)
-                text="Active"
+            if (err==0)
+                if (flags&0x01)
+                    text="Active"
+                else
+                    text="Inactive"
             else
-                text="Inactive"
+                if (err==1)
+                    text="Stopped: Hit Current limit @ calib"
+                else if (err==2)
+                    text="Stopped: Possensor diff too large"
+                else if (err==3)
+                    text="Stopped: Motor controller fault"
+                else if (err==4)
+                    text="Stopped: Auto-End2End test failed"
+                else
+                    text="Stopped: Unknown Error"
+                
+            
             
             statusLabel.text="Status: "+text
             posLabel.text="Pos: "+pos

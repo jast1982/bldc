@@ -688,6 +688,13 @@ void mc_interface_set_servo_pos_speed(float pos, float erpm)
 {
 	SHUTDOWN_RESET();
 	volatile mc_configuration *conf = &motor_now()->m_conf;
+	static uint16_t timeout=0;
+
+	if (timeout)
+	{
+		timeout--;
+		return;
+	}
 	switch (conf->motor_type) {
 		case MOTOR_TYPE_BLDC:
 		case MOTOR_TYPE_DC:
@@ -695,7 +702,17 @@ void mc_interface_set_servo_pos_speed(float pos, float erpm)
 			break;
 
 		case MOTOR_TYPE_FOC:
-			mcpwm_foc_set_servo_pos_speed(pos,erpm);
+			if (motor_now()->m_fault_now==FAULT_CODE_NONE)
+				mcpwm_foc_set_servo_pos_speed(pos,erpm);
+			else
+			{
+				if (motor_now()->m_fault_now==FAULT_CODE_ENCODER_SPI)
+						{
+							timeout=100;
+							encoder_deinit();
+							encoder_init(&(motor_now()->m_conf));
+						}
+			}
 			break;
 
 		default:

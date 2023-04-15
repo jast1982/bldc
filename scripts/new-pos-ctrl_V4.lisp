@@ -58,7 +58,7 @@
 (def lastTime 0)
 (def uiTimeout 0)
 #init
-
+;(lbm-set-quota 100)
 (def #positionSensor (get-adc 3))
 (def calibAdcValStart 0.9)
 (def deltaT 0)
@@ -98,14 +98,25 @@
     (progn
     (print "Slowly moving to mininum limit")
 
+    
+    
 (set-servo-power 10 0)
+(def rpmCheckState 0)
+(def maxRpm 0)
 
  (loopwhile t (progn
         (def currentPos (get-servo-pos))
         (def currentPosMm (/ currentPos degPerMm))
         (def vbus (get-vin)) 
         (def rpm (get-rpm))
+        (def currentIn (abs (get-current))) 
+     
+        (if (< rpm maxRpm) (define maxRpm rpm))
         
+        (if (and (= rpmCheckState 0) (< rpm -1500)) (def rpmCheckState 1))
+        
+        (if (and (= rpmCheckState 1) (> rpm (* maxRpm 0.7))) (error-stop "Auto-End2End test failed" 4))     
+
         (bufset-i16 data-out 0 (* currentPosMm 100))
         (bufset-i16 data-out 2 (* currentIn vbus))
         (bufset-i16 data-out 4 (* rpm 0.02962)) ; 2.692 is the constant to convert to mm/s
@@ -114,14 +125,19 @@
         (bufset-u8 data-out 7 errorCodeOut)
         (send-data data-out)
         (can-send-eid txId (list (bufget-u8 data-out 0) (bufget-u8 data-out 1) (bufget-u8 data-out 2) (bufget-u8 data-out 3) (bufget-u8 data-out 4) (bufget-u8 data-out 5) (bufget-u8 data-out 6) (bufget-u8 data-out 7) ))
-       
+        (if (!= lastFault 0) (error-stop "Motor controller fault detected" 3))
+        
         (set-servo-pos-speed (* minPosMm degPerMm) 8000)
         (def pdiff (abs (- currentPosMm minPosMm)))
         (if (< pdiff 0.4) (break))
         (sleep 0.01)
      ))
-     
-     
+      
+     (def rpmCheckState 0)
+     (def maxRpm 0)
+
+     (set-servo-power 10 0)
+
      (print "Slowly moving to maximum limit")
 
      (loopwhile t (progn
@@ -129,6 +145,14 @@
         (def currentPosMm (/ currentPos degPerMm))
         (def vbus (get-vin)) 
         (def rpm (get-rpm))
+        (def currentIn (abs (get-current))) 
+     
+        
+        (if (> rpm maxRpm) (define maxRpm rpm))
+       
+       (if (and (= rpmCheckState 0) (> rpm 1500)) (def rpmCheckState 1))
+        
+        (if (and (= rpmCheckState 1) (< rpm (* maxRpm 0.7))) (error-stop "Auto-End2End test failed" 4))
         
         (bufset-i16 data-out 0 (* currentPosMm 100))
         (bufset-i16 data-out 2 (* currentIn vbus))
@@ -138,6 +162,7 @@
         (bufset-u8 data-out 7 errorCodeOut)
         (send-data data-out)
         (can-send-eid txId (list (bufget-u8 data-out 0) (bufget-u8 data-out 1) (bufget-u8 data-out 2) (bufget-u8 data-out 3) (bufget-u8 data-out 4) (bufget-u8 data-out 5) (bufget-u8 data-out 6) (bufget-u8 data-out 7) ))
+        (if (!= lastFault 0) (error-stop "Motor controller fault detected" 3))
        
         (set-servo-pos-speed (* maxPosMm degPerMm) 8000)
         (def pdiff (abs (- currentPosMm maxPosMm)))
@@ -154,7 +179,8 @@
         (def currentPosMm (/ currentPos degPerMm))
         (def vbus (get-vin)) 
         (def rpm (get-rpm))
-        
+        (def currentIn (abs (get-current))) 
+     
         (bufset-i16 data-out 0 (* currentPosMm 100))
         (bufset-i16 data-out 2 (* currentIn vbus))
         (bufset-i16 data-out 4 (* rpm 0.02962)) ; 2.692 is the constant to convert to mm/s
@@ -163,6 +189,7 @@
         (bufset-u8 data-out 7 errorCodeOut)
         (send-data data-out)
         (can-send-eid txId (list (bufget-u8 data-out 0) (bufget-u8 data-out 1) (bufget-u8 data-out 2) (bufget-u8 data-out 3) (bufget-u8 data-out 4) (bufget-u8 data-out 5) (bufget-u8 data-out 6) (bufget-u8 data-out 7) ))
+        (if (!= lastFault 0) (error-stop "Motor controller fault detected" 3))
        
         (set-servo-pos-speed 0 15000)
         (def pdiff (abs currentPosMm))

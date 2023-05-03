@@ -36,7 +36,9 @@
 
 ;this is the calculated value
 (def degPerMm 202.5)
-(if (= actType 1) (def calibPoint 0.0) (def calibPoint 40.0))
+(def calibPoint 0.0)
+(if (= actType 0) (def calibPoint 40.0))
+(if (= actType 2) (def calibPoint 14.0))
 (def adcCalibPoint (+ adcZero (/ (* calibPoint mvPerMm) 1000)))
 (def rxId 0x20e0u32)
 (set-servo-min-pos -10000000)
@@ -68,7 +70,7 @@
         (if (= uiTimeout 0)
         (progn
       ;  (print (buflen data))
-        (define #setPos (bufget-i16 data (* actType 2)))
+         (if (= actType 1) (define #setPos (bufget-i16 data 2)) (define #setPos (bufget-i16 data 0)))
         (define #setSpeed (bufget-u8 data 6))
         (define #setFlags (bufget-u8 data 7))
         

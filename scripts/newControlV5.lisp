@@ -263,11 +263,35 @@
 
 (set-handbrake 0.5)
 (sleep 0.1)
+(def calibValueCnt 0)
+(def calibCnt 0)
+(def calibValue 0.0)
+(loopwhile t
+        (progn
+
+        (def calibCnt (+ calibcnt 1))
+        
+        (if (> calibCnt 100) (progn
+            (def #positionSensor (get-adc 3))
+
+            (def #posSense (/ (* (- #positionSensor adcZero) 1000) mvPerMm))
+            
+            (def calibValue (+ calibValue #posSense))
+            (def calibValueCnt (+ calibValueCnt 1))
+        
+        ))
+        
+        (if (> calibCnt 400) (break))
+        (sleep 0.01)
+        )
+ )
+ 
+(def calibValue (/ calibValue calibValueCnt))
 
 (def #positionSensor (get-adc 3))
 (def #posSense (/ (* (- #positionSensor adcZero) 1000) mvPerMm))
        
-(reset-servo-pos (* #posSense degPerMm))
+(reset-servo-pos (* calibValue degPerMm))
 (set-servo-min-pos (* minPosMm degPerMm))
 (set-servo-max-pos (* maxPosMm degPerMm))
 (def currentPos (get-servo-pos))
@@ -280,11 +304,8 @@
 
 (def currentPos (get-servo-pos))
 (def currentPosMm (/ currentPos degPerMm))
-(def #positionSensor (get-adc 3))
-(def #posSense (/ (* (- #positionSensor adcZero) 1000) mvPerMm))
-      
-(def posDiff0 (abs (- #posSense currentPosMm)))
-     
+ 
+(def posDiff0 (- currentPosMm calibValue))
 
 (loopwhile t (progn
     
@@ -303,7 +324,8 @@
         
         (bufset-i16 data-out 0 (* currentPosMm 100))
         (bufset-i16 data-out 2 (* currentIn vbus))
-        (bufset-i16 data-out 4 (* rpm 0.02962)) ; 2.692 is the constant to convert to mm/s
+;        (bufset-i16 data-out 4 (* rpm 0.02962)) ; 2.692 is the constant to convert to mm/s
+        (bufset-i16 data-out 4 (* #posSense 100)) ; 2.692 is the constant to convert to mm/s
        
         (if (= ctrlActive 0) (bufset-u8 data-out 6 0xF0) (bufset-u8 data-out 6 0xF1))
         (bufset-u8 data-out 7 errorCodeOut)

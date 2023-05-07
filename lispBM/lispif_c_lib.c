@@ -346,6 +346,8 @@ static SerialConfig uart_cfg = {
 };
 
 static bool lib_uart_start(uint32_t baudrate, bool half_duplex) {
+
+	return false;
 	app_configuration *appconf = mempools_alloc_appconf();
 	conf_general_read_app_configuration(appconf);
 	if (appconf->app_to_use == APP_UART ||

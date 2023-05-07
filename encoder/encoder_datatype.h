@@ -247,6 +247,10 @@ typedef struct {
 	uint32_t last_update_time;
 	uint8_t rx_buf[4];
 	uint8_t tx_buf[4];
+	uint32_t AFRL;
+	uint32_t AFRH;
+	uint32_t MODER;
+	uint32_t OT;
 } AS5x47U_state;
 
 typedef struct {

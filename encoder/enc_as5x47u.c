@@ -235,6 +235,11 @@ void enc_as5x47u_spi_callback(SPIDriver *pspi) {
 			UTILS_LP_FAST(cfg->state.spi_error_rate, 1.0, timestep);
 			++cfg->state.spi_error_cnt;
 			cfg->state.spi_seq = SPI_SEQ_PREV_ERR;
+			cfg->state.AFRH=GPIOA->AFRH;
+			cfg->state.AFRL=GPIOA->AFRL;
+			cfg->state.MODER=GPIOA->MODER;
+			cfg->state.OT=GPIOA->OTYPER;
+
 		}
 	}
 }

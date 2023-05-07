@@ -312,7 +312,7 @@ static lbm_value ext_uart_out_avail(lbm_value *args, lbm_uint argn) {
 
 bool platform_uart_init(void) {
   int res = 1;
-
+  return res;
   res = res && lbm_add_extension("uart-init", ext_uart_init);
   res = res && lbm_add_extension("uart-write", ext_uart_write);
   res = res && lbm_add_extension("uart-read", ext_uart_read);

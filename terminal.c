@@ -1106,6 +1106,8 @@ void terminal_process_string(char *str) {
 		commands_printf("MC CFG crc: 0x%04X (stored)  0x%04X (recalc)", mc_crc0, mc_crc1);
 		commands_printf("APP CFG crc: 0x%04X (stored)  0x%04X (recalc)", app_crc0, app_crc1);
 		commands_printf("Discrepancy is expected due to run-time recalculation of config params.\n");
+	} else if (strcmp(argv[0], "checkporta") == 0) {
+		commands_printf("GPIOA: 0x%08X 0x%08X 0x%08X 0x%08X",GPIOA->AFRH,GPIOA->AFRL,GPIOA->OTYPER, GPIOA->MODER);
 	} else if (strcmp(argv[0], "drv_reset_faults") == 0) {
 		HW_RESET_DRV_FAULTS();
 	} else if (strcmp(argv[0], "update_pid_pos_offset") == 0) {

@@ -675,6 +675,17 @@ static void terminal_encoder(int argc, const char **argv) {
 				encoder_cfg_as5x47u.state.spi_val, encoder_cfg_as5x47u.state.spi_communication_error_count,
 				(double)(encoder_cfg_as5x47u.state.spi_error_rate * 100.0));
 
+		commands_printf("\nAS5x47U GPIO:\n"
+						"AFRH   : %u\n"
+						"AFRL         : %u\n"
+						"MODER   : %u\n"
+						"OR         : %u\n"
+						,
+						encoder_cfg_as5x47u.state.AFRH,
+						encoder_cfg_as5x47u.state.AFRL,
+						encoder_cfg_as5x47u.state.MODER,
+						encoder_cfg_as5x47u.state.OT
+		);
 		commands_printf("\nAS5x47U DIAGNOSTICS:\n"
 				"Connected   : %u\n"
 				"AGC         : %u\n"

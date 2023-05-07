@@ -2128,6 +2128,8 @@ static SerialConfig uart_cfg = {
 static bool uart_started = false;
 
 static lbm_value ext_uart_start(lbm_value *args, lbm_uint argn) {
+
+	return ENC_SYM_EERROR;
 	if ((argn != 1 && argn != 2) || !lbm_is_number(args[0])) {
 		return ENC_SYM_EERROR;
 	}
@@ -2365,8 +2367,8 @@ static lbm_value ext_i2c_start(lbm_value *args, lbm_uint argn) {
 		mempools_free_appconf(appconf);
 	}
 
-	i2c_bb_init(&i2c_cfg);
-	i2c_started = true;
+	//i2c_bb_init(&i2c_cfg);
+	i2c_started = false;
 
 	return ENC_SYM_TRUE;
 }

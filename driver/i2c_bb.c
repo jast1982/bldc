@@ -52,6 +52,7 @@ static inline float rate2secs(i2c_bb_state *s) {
 }
 
 void i2c_bb_init(i2c_bb_state *s) {
+
 	chMtxObjectInit(&s->mutex);
 	palSetPadMode(s->sda_gpio, s->sda_pin, PAL_MODE_OUTPUT_OPENDRAIN);
 	palSetPadMode(s->scl_gpio, s->scl_pin, PAL_MODE_OUTPUT_OPENDRAIN);

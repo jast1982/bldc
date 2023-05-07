@@ -137,6 +137,8 @@ void app_uartcomm_initialize(void) {
 }
 
 void app_uartcomm_start(UART_PORT port_number) {
+
+	return;
 	if(port_number >= UART_NUMBER){
 		return;
 	}

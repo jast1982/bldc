@@ -1,5 +1,5 @@
 ;set id
-;(eeprom-store-i 0 6)
+(eeprom-store-i 0 7)
 ;set
 
 (def id (eeprom-read-i 0))
@@ -57,6 +57,17 @@
 (def maxPosMm 55.0)
 (def actType 1)
 ))
+
+
+(if (= id 7) (progn
+(def mvPerMm 16.115)
+(def adcZero 1.688)
+(def txId 0x11f0u32)
+(def minPosMm -55.0)
+(def maxPosMm 55.0)
+(def actType 1)
+))
+
 
 (eeprom-store-i 1 actType)
 (eeprom-store-i 2 txId)

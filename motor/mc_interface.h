@@ -76,7 +76,7 @@ float mc_interface_get_watt_hours(bool reset);
 float mc_interface_get_watt_hours_charged(bool reset);
 float mc_interface_get_tot_current(void);
 float mc_interface_get_servo_pos(void);
-
+uint32_t mc_interface_get_encoder_faults(void);
 float mc_interface_get_tot_current_filtered(void);
 float mc_interface_get_tot_current_directional(void);
 float mc_interface_get_tot_current_directional_filtered(void);

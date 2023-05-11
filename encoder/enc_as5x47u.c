@@ -120,6 +120,9 @@ void enc_as5x47u_spi_callback(SPIDriver *pspi) {
 	if (pspi != NULL && pspi->app_arg != NULL) {
 		AS5x47U_config_t *cfg = (AS5x47U_config_t*)pspi->app_arg;
 		spiUnselectI(cfg->spi_dev);
+		chSysLock();
+		cfg->state.lastTransferDone=1;
+		chSysUnlock();
 	
 		// Determine time step for error rate calculation
 		float timestep = timer_seconds_elapsed_since(cfg->state.last_update_time);
@@ -142,7 +145,11 @@ void enc_as5x47u_spi_callback(SPIDriver *pspi) {
 				switch(cfg->state.spi_seq) {
 				case SPI_SEQ_TX_MAG_RX_POS:
 					// Receive position, then request position while receiving magnitude
-					AS5x47U_process_pos(cfg, rx_data);
+					if ((rx_data&0xC000)==0) //process position only if there were no errors or warnings
+						AS5x47U_process_pos(cfg, rx_data);
+					else
+						cfg->state.spi_rx_error_cnt++;
+
 					cfg->state.spi_seq = SPI_SEQ_TX_POS_RX_MAG;
 					AS5x47U_start_spi_exchange_precalc_crc(
 						cfg, AS5x47U_SPI_READ_POS_MSG, AS5x47U_SPI_READ_POS_CRC);
@@ -239,6 +246,7 @@ void enc_as5x47u_spi_callback(SPIDriver *pspi) {
 			cfg->state.AFRL=GPIOA->AFRL;
 			cfg->state.MODER=GPIOA->MODER;
 			cfg->state.OT=GPIOA->OTYPER;
+			cfg->state.ODR=GPIOA->ODR;
 
 		}
 	}
@@ -249,6 +257,9 @@ static void as5x47u_spi_err_callback(SPIDriver *pspi) {
 		AS5x47U_config_t *cfg = (AS5x47U_config_t*)pspi->app_arg;
 		// Make sure we won't process the data
 		memset(cfg->state.rx_buf, 0, sizeof(cfg->state.rx_buf));
+		chSysLock();
+		cfg->state.lastTransferDone=1;
+		chSysUnlock();
 	}
 }
 
@@ -268,6 +279,12 @@ bool enc_as5x47u_init(AS5x47U_config_t *cfg) {
 			PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
 	palSetPadMode(cfg->mosi_gpio, cfg->mosi_pin,
 			PAL_MODE_ALTERNATE(cfg->spi_af) | PAL_STM32_OSPEED_HIGHEST);
+
+	cfg->state.AFRH=GPIOA->AFRH;
+	cfg->state.AFRL=GPIOA->AFRL;
+	cfg->state.MODER=GPIOA->MODER;
+	cfg->state.OT=GPIOA->OTYPER;
+	cfg->state.lastTransferDone=1;
 
 	cfg->spi_dev->app_arg = (void*)cfg;
 	cfg->spi_dev->err_cb = as5x47u_spi_err_callback;
@@ -377,6 +394,14 @@ static void AS5x47U_start_spi_exchange_precalc_crc(AS5x47U_config_t *cfg,
 	// SPI data register, clearing the RXNE flag.
 	volatile uint32_t test = cfg->spi_dev->spi->DR;
 	(void)test; // get rid of unused warning
+	chSysLock();
+	if (!cfg->state.lastTransferDone)
+	{
+		chSysUnlock();
+		return; //skip cycles if last transfer wasn't done yet
+	}
+	cfg->state.lastTransferDone=0;
+	chSysUnlock();
 
 	spiSelectI(cfg->spi_dev);
 	spiStartExchangeI(cfg->spi_dev, 3, cfg->state.tx_buf, cfg->state.rx_buf);

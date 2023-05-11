@@ -345,7 +345,7 @@ void foc_svm(float alpha, float beta, uint32_t PWMFullDutyCycle,
 #define MAX_ANGLE_DIFF 90.0f
 #define MAX_BREAK_ANGLE 960.0f
 #define MAX_BREAK_ANGLE_SPEED 25000.0f
-#define MAX_ACCELERATION_DEG_S2 500.0f
+#define MAX_ACCELERATION_DEG_S2 250.0f
 #define MAX_ACCELERATION (MAX_ACCELERATION_DEG_S2/10000.0f)
 #define MAX_ANGLE_CHANGE (360.0f*150000.0f/14.0f/60.0f/10000.0f) //assuming 100.000erpm as max speed
 #define ANGLE_INPUT_FILTER_CONSTANT (0.0f)

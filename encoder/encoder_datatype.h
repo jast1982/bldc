@@ -242,6 +242,7 @@ typedef struct {
 	AS5x47U_diag sensor_diag;
 	uint16_t spi_val;
 	float last_enc_angle;
+	uint32_t spi_rx_error_cnt;
 	uint32_t spi_error_cnt;
 	float spi_error_rate;
 	uint32_t last_update_time;
@@ -251,6 +252,10 @@ typedef struct {
 	uint32_t AFRH;
 	uint32_t MODER;
 	uint32_t OT;
+	uint32_t ODR;
+	uint32_t encFaultsNotConn;
+	uint32_t encFaultsErrorRate;
+	uint8_t lastTransferDone;
 } AS5x47U_state;
 
 typedef struct {

@@ -89,6 +89,7 @@ typedef struct {
 	// Backup data counters
 	uint64_t m_odometer_last;
 	uint64_t m_runtime_last;
+	uint32_t m_spiEncoderFaults;
 } motor_if_state_t;
 
 // Private variables
@@ -708,7 +709,8 @@ void mc_interface_set_servo_pos_speed(float pos, float erpm)
 			{
 				if (motor_now()->m_fault_now==FAULT_CODE_ENCODER_SPI)
 						{
-							timeout=100;
+							timeout=1;
+							motor_now()->m_spiEncoderFaults++;
 							encoder_deinit();
 							encoder_init(&(motor_now()->m_conf));
 						}
@@ -1253,6 +1255,12 @@ float mc_interface_get_tot_current(void) {
 	}
 
 	return ret;
+}
+
+
+uint32_t mc_interface_get_encoder_faults(void) {
+
+	return motor_now()->m_spiEncoderFaults;
 }
 
 float mc_interface_get_servo_pos(void) {

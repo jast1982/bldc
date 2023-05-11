@@ -152,7 +152,7 @@ AS5x47U_config_t encoder_cfg_as5x47u = {
 #ifdef HW_SPI_DEV
 		&HW_SPI_DEV, // spi_dev
 		{//HARDWARE SPI CONFIG
-				enc_as5x47u_spi_callback, HW_SPI_PORT_NSS, HW_SPI_PIN_NSS, SPI_BaudRatePrescaler_8 |
+				enc_as5x47u_spi_callback, HW_SPI_PORT_NSS, HW_SPI_PIN_NSS, SPI_BaudRatePrescaler_32 |
 				SPI_CR1_CPHA | SPI_DATASIZE_8BIT
 		},
 

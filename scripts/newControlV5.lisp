@@ -254,7 +254,7 @@
         
         (if (> limitCnt 50) (error-stop "Hit current limit while going to calib point" 1))    
         (def lastFault (get-fault))
-        (if (!= lastFault 0) (error-stop "Motor controller fault detected" 3))
+        (if (and (!= lastFault 0) (!= lastFault 11)) (error-stop "Motor controller fault detected" 3))
         (if (< (abs (- #positionSensor adcCalibPoint)) 0.05) (break))
         (sleep 0.001)
         )
@@ -289,7 +289,7 @@
 (def calibValue (/ calibValue calibValueCnt))
 
 (def #positionSensor (get-adc 3))
-(def #posSense (/ (* (- #positionSensor adcZero) 1000) mvPerMm))
+(def #posSense (/ (* (- #positionSensor calibValue) 1000) mvPerMm))
        
 (reset-servo-pos (* calibValue degPerMm))
 (set-servo-min-pos (* minPosMm degPerMm))
@@ -307,11 +307,16 @@
  
 (def posDiff0 (- currentPosMm calibValue))
 
+(print (str-from-n currentPosMm "currentPosMm: %f"))
+(print (str-from-n calibValue "calibValue: %f"))
+
+(print (str-from-n posDiff0 "PosDiff: %f"))
+
 (loopwhile t (progn
     
         (def currentPos (get-servo-pos))
         (def currentPosMm (/ currentPos degPerMm))
-        (def currentIn (abs (get-current-in))) 
+        (def currentIn (abs (get-current))) 
         (def vbus (get-vin)) 
         (def rpm (get-rpm))
         (def #positionSensor (get-adc 3))
@@ -320,21 +325,23 @@
         (def lastTime (systime))
         
         (def #posSense (/ (* (- #positionSensor adcZero) 1000) mvPerMm))
-        (def posDiff (abs (- #posSense currentPosMm posDiff0)))
+        (def posDiff (- (abs (- #posSense currentPosMm) ) posDiff0))
         
         (bufset-i16 data-out 0 (* currentPosMm 100))
-        (bufset-i16 data-out 2 (* currentIn vbus))
+        (bufset-i16 data-out 2 currentIn)
+      ;  (bufset-i16 data-out 2 (* currentIn vbus))
 ;        (bufset-i16 data-out 4 (* rpm 0.02962)) ; 2.692 is the constant to convert to mm/s
         (bufset-i16 data-out 4 (* #posSense 100)) ; 2.692 is the constant to convert to mm/s
-       
-        (if (= ctrlActive 0) (bufset-u8 data-out 6 0xF0) (bufset-u8 data-out 6 0xF1))
-        (bufset-u8 data-out 7 errorCodeOut)
+        (def faults (get-encoder-faults))
+        (def lastFault (get-fault))
+        (if (= ctrlActive 0) (bufset-u8 data-out 6 0x00) (bufset-u8 data-out 6 0xFF))
+        (if (> faults 0) (bufset-u8 data-out 6 faults))
+        (bufset-u8 data-out 7 lastfault)
        
         (if (> uiTimeout 0) (def uiTimeout (- uiTimeout 1)))
         
-        (def lastFault (get-fault))
-        (if (and (!= lastFault 0) (!= lastFault 11)) (error-stop "Motor controller fault detected" 3)) 
-        (if (< (abs currentPosMm) 15) (if (> posDiff 6.0) (error-stop "Position sensor difference detected" 2)))
+        (if (and (!= lastFault 0) (!= lastFault 11) (!= lastFault 4)) (error-stop "Motor controller fault detected" 3)) 
+        ;(if (< (abs currentPosMm) 15) (if (> posDiff 6.0) (error-stop "Position sensor difference detected" 2)))
         (send-data data-out)
         (can-send-eid txId (list (bufget-u8 data-out 0) (bufget-u8 data-out 1) (bufget-u8 data-out 2) (bufget-u8 data-out 3) (bufget-u8 data-out 4) (bufget-u8 data-out 5) (bufget-u8 data-out 6) (bufget-u8 data-out 7) ))
         

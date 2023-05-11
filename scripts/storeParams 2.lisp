@@ -1,5 +1,5 @@
 ;set id
-(eeprom-store-i 0 6)
+(eeprom-store-i 0 1)
 ;set
 
 (def id (eeprom-read-i 0))

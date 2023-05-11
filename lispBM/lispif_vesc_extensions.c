@@ -1387,6 +1387,12 @@ static lbm_value ext_foc_beep(lbm_value *args, lbm_uint argn) {
 
 
 
+
+static lbm_value ext_get_encoder_faults(lbm_value *args, lbm_uint argn) {
+	(void)args; (void)argn;
+	return lbm_enc_u32(mc_interface_get_encoder_faults());
+}
+
 static lbm_value ext_get_servo_pos(lbm_value *args, lbm_uint argn) {
 	(void)args; (void)argn;
 	return lbm_enc_float(mc_interface_get_servo_pos());
@@ -3924,6 +3930,7 @@ void lispif_load_vesc_extensions(void) {
 	lbm_add_extension("foc-beep", ext_foc_beep);
 
 	// Motor get commands
+	lbm_add_extension("get-encoder-faults", ext_get_encoder_faults);
 	lbm_add_extension("get-servo-pos", ext_get_servo_pos);
 	lbm_add_extension("get-current", ext_get_current);
 	lbm_add_extension("get-current-dir", ext_get_current_dir);

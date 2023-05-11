@@ -17,8 +17,8 @@
 (def inLimitCnt 0)
 (loopwhile t
     (progn
-           
-        (if (> (get-current) 15.0) (def inLimitCnt (+ inLimitCnt 1)))
+        (def adcVal (get-adc 3))
+        (if (> (get-current) 10.0) (def inLimitCnt (+ inLimitCnt 1)))
     
         (if (> inLimitCnt 15) (break))
         
@@ -26,6 +26,7 @@
     (sleep 0.01)
 )
 )
+
 
 (set-handbrake 0.5)
 ;sample maximum adc value
@@ -47,7 +48,8 @@
 
 (loopwhile t
     (progn
-           
+               (def adcVal (get-adc 3))
+
          (set-servo-pos-speed desiredPos 1600) 
          
          (if (< (abs (- desiredPos (get-servo-pos))) 100) (break))
@@ -61,6 +63,7 @@
 (def cnt 0)
 (loopwhile t
     (progn
+        
        (def adcStep (+ adcStep (get-adc 3)))
        (def cnt (+ cnt 1))
        (if (> cnt 50) (break))

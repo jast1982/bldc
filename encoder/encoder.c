@@ -92,7 +92,7 @@ bool encoder_init(volatile mc_configuration *conf) {
 		}
 
 		m_encoder_type_now = ENCODER_TYPE_AS504x;
-		timer_start(routine_rate_10k);
+		timer_start(routine_rate_5k);
 
 		res = true;
 	} break;
@@ -534,11 +534,20 @@ void encoder_check_faults(volatile mc_configuration *m_conf, bool is_second_moto
 
 		case SENSOR_PORT_MODE_AS5x47U_SPI:
 			if (encoder_cfg_as5x47u.state.spi_error_rate > 0.05) {
+				if (mc_interface_get_fault()==FAULT_CODE_NONE)
+				{
+					encoder_cfg_as5x47u.state.encFaultsErrorRate++;
+				}
 				mc_interface_fault_stop(FAULT_CODE_ENCODER_SPI, is_second_motor, false);
 			}
 
 			AS5x47U_diag diag = encoder_cfg_as5x47u.state.sensor_diag;
 			if (!diag.is_connected) {
+				if (mc_interface_get_fault()==FAULT_CODE_NONE)
+				{
+					encoder_cfg_as5x47u.state.encFaultsNotConn++;
+
+				}
 				mc_interface_fault_stop(FAULT_CODE_ENCODER_SPI, is_second_motor, false);
 			}
 
@@ -671,19 +680,21 @@ static void terminal_encoder(int argc, const char **argv) {
 		break;
 
 	case SENSOR_PORT_MODE_AS5x47U_SPI:
-		commands_printf("SPI AS5x47U encoder value: %d, errors: %d, error rate: %.3f %%",
-				encoder_cfg_as5x47u.state.spi_val, encoder_cfg_as5x47u.state.spi_communication_error_count,
-				(double)(encoder_cfg_as5x47u.state.spi_error_rate * 100.0));
+		commands_printf("SPI AS5x47U encoder value: %d, errors: %d, rx_errors: %d, error rate: %.3f %% NC-Err: %i ER-Err: %i",
+						encoder_cfg_as5x47u.state.spi_val, encoder_cfg_as5x47u.state.spi_error_cnt,encoder_cfg_as5x47u.state.spi_rx_error_cnt,
+						(double)(encoder_cfg_as5x47u.state.spi_error_rate * 100.0),encoder_cfg_as5x47u.state.encFaultsNotConn,encoder_cfg_as5x47u.state.encFaultsErrorRate);
 
 		commands_printf("\nAS5x47U GPIO:\n"
-						"AFRH   : %u\n"
-						"AFRL         : %u\n"
-						"MODER   : %u\n"
-						"OR         : %u\n"
+						"AFRH   : 0x%08X\n"
+						"AFRL         : 0x%08X\n"
+						"MODER   : 0x%08X\n"
+						"OR         : 0x%08X\n"
+						"ODR         : 0x%08X\n"
 						,
 						encoder_cfg_as5x47u.state.AFRH,
 						encoder_cfg_as5x47u.state.AFRL,
 						encoder_cfg_as5x47u.state.MODER,
+						encoder_cfg_as5x47u.state.ODR,
 						encoder_cfg_as5x47u.state.OT
 		);
 		commands_printf("\nAS5x47U DIAGNOSTICS:\n"

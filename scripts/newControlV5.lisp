@@ -231,7 +231,7 @@
 ))
 
 (event-register-handler (spawn event-handler))
-(event-enable 'event-data-rx)
+;(event-enable 'event-data-rx)
 (event-enable 'event-can-eid)
 
 (def lastFault (get-fault))

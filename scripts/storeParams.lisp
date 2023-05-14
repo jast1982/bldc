@@ -1,5 +1,5 @@
 ;set id
-(eeprom-store-i 0 7)
+(eeprom-store-i 0 4)
 ;set
 
 (def id (eeprom-read-i 0))
@@ -8,8 +8,8 @@
 (def mvPerMm 16.094)
 (def adcZero 1.657)
 (def txId 0x10f0u32)
-(def minPosMm 3)
-(def maxPosMm 25)
+(def minPosMm 1)
+(def maxPosMm 24)
 (def actType 2)
 ))
 
@@ -45,7 +45,7 @@
 (def adcZero 1.690)
 (def txId 0x10f0u32)
 (def minPosMm 8.0)
-(def maxPosMm 52.0)
+(def maxPosMm 51.0)
 (def actType 0)
 ))
 

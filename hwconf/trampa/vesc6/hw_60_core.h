@@ -252,6 +252,8 @@
 #define HW_UART_TX_PIN			10
 #define HW_UART_RX_PORT			GPIOB
 #define HW_UART_RX_PIN			11
+#define HW_UART_DE_PORT			GPIOC
+#define HW_UART_DE_PIN			8
 
 #if defined(HW60_IS_MK3) || defined(HW60_IS_MK4) || defined(HW60_IS_MK5) || defined(HW60_IS_MK6)
 // Permanent UART Peripheral (for NRF51)

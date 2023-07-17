@@ -38,7 +38,8 @@ typedef enum {
 	routine_rate_1k = 0,
 	routine_rate_2k,
 	routine_rate_5k,
-	routine_rate_10k
+	routine_rate_10k,
+	routine_rate_none
 } routine_rate_t;
 
 volatile routine_rate_t m_routine_rate = routine_rate_1k;
@@ -224,14 +225,25 @@ bool encoder_init(volatile mc_configuration *conf) {
 	} break;
 
 	case SENSOR_PORT_MODE_AS5x47U_SPI: {
-		SENSOR_PORT_3V3();
+		SENSOR_PORT_5V();
+		app_configuration *appconf = mempools_alloc_appconf();
+		conf_general_read_app_configuration(appconf);
+		if (appconf->app_to_use == APP_ADC ||
+				appconf->app_to_use == APP_UART ||
+				appconf->app_to_use == APP_PPM_UART ||
+				appconf->app_to_use == APP_ADC_UART) {
+			appconf->app_to_use = APP_NONE;
+			app_set_configuration(appconf);
+			conf_general_store_app_configuration(appconf);
+		}
+		mempools_free_appconf(appconf);
 
 		if (!enc_as5x47u_init(&encoder_cfg_as5x47u)) {
 			return false;
 		}
 
 		m_encoder_type_now = ENCODER_TYPE_AS5x47U;
-		timer_start(routine_rate_10k);
+		timer_start(routine_rate_none);
 
 		res = true;
 	} break;
@@ -367,7 +379,7 @@ float encoder_read_deg(void) {
 	} else if (m_encoder_type_now == ENCODER_TYPE_TS5700N8501) {
 		return enc_ts5700n8501_read_deg(&encoder_cfg_TS5700N8501);
 	} else if (m_encoder_type_now == ENCODER_TYPE_AS5x47U) {
-		return AS5x47U_LAST_ANGLE(&encoder_cfg_as5x47u);
+		return encoder_cfg_as5x47u.state.angle;
 	} else if (m_encoder_type_now == ENCODER_TYPE_BISSC) {
 		return BISSC_LAST_ANGLE(&encoder_cfg_bissc);
 	} else if (m_encoder_type_now == ENCODER_TYPE_CUSTOM) {
@@ -449,7 +461,7 @@ float encoder_get_error_rate(void) {
 		}
 		break;
 	case ENCODER_TYPE_AS5x47U:
-		res = encoder_cfg_as5x47u.state.spi_error_rate;
+		res = 0;//encoder_cfg_as5x47u.state.spi_error_rate;
 		break;
 	case ENCODER_TYPE_BISSC:
 		res = encoder_cfg_bissc.state.spi_comm_error_rate;
@@ -533,7 +545,7 @@ void encoder_check_faults(volatile mc_configuration *m_conf, bool is_second_moto
 			break;
 
 		case SENSOR_PORT_MODE_AS5x47U_SPI:
-			if (encoder_cfg_as5x47u.state.spi_error_rate > 0.05) {
+			/*if (encoder_cfg_as5x47u.state.spi_error_rate > 0.05) {
 				if (mc_interface_get_fault()==FAULT_CODE_NONE)
 				{
 					encoder_cfg_as5x47u.state.encFaultsErrorRate++;
@@ -558,7 +570,17 @@ void encoder_check_faults(volatile mc_configuration *m_conf, bool is_second_moto
 			} else if (diag.is_broken_hall || diag.is_COF || diag.is_wdtst) {
 				mc_interface_fault_stop(FAULT_CODE_ENCODER_FAULT, is_second_motor, false);
 			}
+*/
 
+			if (encoder_cfg_as5x47u.state.timeoutGlobal<100)
+				{
+					encoder_cfg_as5x47u.state.timeoutGlobal++;
+				}
+
+			if ((encoder_cfg_as5x47u.state.timeout>500) || (encoder_cfg_as5x47u.state.timeoutGlobal>50))
+			{
+				mc_interface_fault_stop(FAULT_CODE_ENCODER_FAULT, is_second_motor, false);
+			}
 			break;
 
 		case SENSOR_PORT_MODE_BISSC:
@@ -680,50 +702,18 @@ static void terminal_encoder(int argc, const char **argv) {
 		break;
 
 	case SENSOR_PORT_MODE_AS5x47U_SPI:
-		commands_printf("SPI AS5x47U encoder value: %d, errors: %d, rx_errors: %d, error rate: %.3f %% NC-Err: %i ER-Err: %i",
-						encoder_cfg_as5x47u.state.spi_val, encoder_cfg_as5x47u.state.spi_error_cnt,encoder_cfg_as5x47u.state.spi_rx_error_cnt,
-						(double)(encoder_cfg_as5x47u.state.spi_error_rate * 100.0),encoder_cfg_as5x47u.state.encFaultsNotConn,encoder_cfg_as5x47u.state.encFaultsErrorRate);
 
-		commands_printf("\nAS5x47U GPIO:\n"
-						"AFRH   : 0x%08X\n"
-						"AFRL         : 0x%08X\n"
-						"MODER   : 0x%08X\n"
-						"OR         : 0x%08X\n"
-						"ODR         : 0x%08X\n"
-						,
-						encoder_cfg_as5x47u.state.AFRH,
-						encoder_cfg_as5x47u.state.AFRL,
-						encoder_cfg_as5x47u.state.MODER,
-						encoder_cfg_as5x47u.state.ODR,
-						encoder_cfg_as5x47u.state.OT
+		commands_printf("\nAS5x47U DIAGNOSTICS: \n OK: %u \n CRC-ERROR: %u \n VAL-ERROR: %U \n TIMEOUT: %U \n MAX-TIMEOUT: %u \n TIMEOUT-GLOBAL: %u \n LAST-FLAGS: %u\n"
+
+				,encoder_cfg_as5x47u.state.pktOk,
+				encoder_cfg_as5x47u.state.pktCrcErr,
+				encoder_cfg_as5x47u.state.pktValErr,
+				encoder_cfg_as5x47u.state.timeout,
+				encoder_cfg_as5x47u.state.maxTimeout,
+				encoder_cfg_as5x47u.state.timeoutGlobal,
+				encoder_cfg_as5x47u.state.lastFlags
+
 		);
-		commands_printf("\nAS5x47U DIAGNOSTICS:\n"
-				"Connected   : %u\n"
-				"AGC         : %u\n"
-				"Magnitude   : %u\n"
-				"COF         : %u\n"
-				"Hall_Broken : %u\n"
-				"Error       : %u\n"
-				"COMP_low    : %u\n"
-				"COMP_high   : %u\n"
-				"WatchdogTest: %u\n"
-				"CRC Error   : %u\n"
-				"MagHalf     : %u\n"
-				"Error Flags : %04X\n"
-				"Diag Flags  : %04X\n",
-				encoder_cfg_as5x47u.state.sensor_diag.is_connected,
-				encoder_cfg_as5x47u.state.sensor_diag.AGC_value,
-				encoder_cfg_as5x47u.state.sensor_diag.magnitude,
-				encoder_cfg_as5x47u.state.sensor_diag.is_COF,
-				encoder_cfg_as5x47u.state.sensor_diag.is_broken_hall,
-				encoder_cfg_as5x47u.state.sensor_diag.is_error,
-				encoder_cfg_as5x47u.state.sensor_diag.is_Comp_low,
-				encoder_cfg_as5x47u.state.sensor_diag.is_Comp_high,
-				encoder_cfg_as5x47u.state.sensor_diag.is_wdtst,
-				encoder_cfg_as5x47u.state.sensor_diag.is_crc_error,
-				encoder_cfg_as5x47u.state.sensor_diag.is_mag_half,
-				encoder_cfg_as5x47u.state.sensor_diag.serial_error_flgs,
-				encoder_cfg_as5x47u.state.sensor_diag.serial_diag_flgs);
 		break;
 
 	case SENSOR_PORT_MODE_BISSC:
@@ -800,6 +790,7 @@ static THD_FUNCTION(routine_thread, arg) {
 		case routine_rate_2k: chThdSleep(CH_CFG_ST_FREQUENCY / 2000); break;
 		case routine_rate_5k: chThdSleep(CH_CFG_ST_FREQUENCY / 5000); break;
 		case routine_rate_10k: chThdSleep(CH_CFG_ST_FREQUENCY / 10000); break;
+		case routine_rate_none: break; //don't sleep here
 		default: chThdSleep(5);
 		}
 	}

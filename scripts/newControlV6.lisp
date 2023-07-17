@@ -61,7 +61,7 @@
 (def uiTimeout 0)
 #init
 ;(lbm-set-quota 100)
-(def #positionSensor (get-adc 3))
+(def #positionSensor (get-adc 0))
 (def calibAdcValStart 0.9)
 (def deltaT 0)
 (def triggerCalib 0)
@@ -250,7 +250,7 @@
         (def currentPos (get-servo-pos))
         (def currentPosMm (/ currentPos degPerMm))
         (def currentIn (abs (get-current))) 
-        (def #positionSensor (get-adc 3))
+        (def #positionSensor (get-adc 0))
         
         (if (> #positionSensor adcCalibPoint) (set-servo-pos-speed -100000 1000) (set-servo-pos-speed 100000 1000))
         
@@ -277,7 +277,7 @@
         (set-handbrake 0.5)
 
         (if (> calibCnt 100) (progn
-            (def #positionSensor (get-adc 3))
+            (def #positionSensor (get-adc 0))
 
             (def #posSense (/ (* (- #positionSensor adcZero) 1000) mvPerMm))
             
@@ -293,7 +293,7 @@
  
 (def calibValue (/ calibValue calibValueCnt))
 
-(def #positionSensor (get-adc 3))
+(def #positionSensor (get-adc 0))
 (def #posSense (/ (* (- #positionSensor calibValue) 1000) mvPerMm))
        
 (reset-servo-pos (* calibValue degPerMm))
@@ -331,7 +331,7 @@
         (def currentIn (abs (get-current))) 
         (def vbus (get-vin)) 
         (def rpm (get-rpm))
-        (def #positionSensor (get-adc 3))
+        (def #positionSensor (get-adc 0))
         
         (def deltaT (secs-since lastTime))
         (def lastTime (systime))

@@ -129,6 +129,12 @@ Item {
                 text: "Active"
                 checked: false
             }
+            CheckBox {
+                id: testBox
+                Layout.fillWidth: true
+                text: "Test"
+                checked: false
+            }
              Label {
                 id: statusLabel
                 text: "Status:Inactive"
@@ -167,7 +173,7 @@ Item {
             dv.setUint16(2,slider1.value*100+slider3.value)
             dv.setUint16(4,slider1.value*100+slider3.value)
             dv.setUint8(6, slider2.value)
-            dv.setUint8(7, activeBox.checked?7:0)
+            dv.setUint8(7, testBox.checked?8:activeBox.checked?7:0)
             mCommands.sendCustomAppData(buffer)
         }
     } 

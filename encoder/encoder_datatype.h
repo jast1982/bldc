@@ -216,6 +216,7 @@ typedef struct {
 typedef struct {
 	spi_bb_state sw_spi;
 	AS504x_state state;
+
 } AS504x_config_t;
 
 typedef struct {
@@ -237,40 +238,31 @@ typedef struct {
 } AS5x47U_diag;
 
 typedef struct {
-	uint16_t spi_seq;
-	uint32_t spi_communication_error_count;
-	AS5x47U_diag sensor_diag;
-	uint16_t spi_val;
-	float last_enc_angle;
-	uint32_t spi_rx_error_cnt;
-	uint32_t spi_error_cnt;
-	float spi_error_rate;
-	uint32_t last_update_time;
-	uint8_t rx_buf[4];
-	uint8_t tx_buf[4];
-	uint32_t AFRL;
-	uint32_t AFRH;
-	uint32_t MODER;
-	uint32_t OT;
-	uint32_t ODR;
-	uint32_t encFaultsNotConn;
-	uint32_t encFaultsErrorRate;
-	uint8_t lastTransferDone;
+	volatile bool stop_now;
+	volatile bool is_running;
+	uint8_t lastFlags;
+	uint32_t pktOk;
+	uint32_t pktCrcErr;
+	uint32_t pktValErr;
+	uint16_t rawValue;
+	float angle;
+	uint16_t timeout;
+	uint16_t timeoutGlobal;
+	uint16_t maxTimeout;
 } AS5x47U_state;
 
 typedef struct {
-	SPIDriver *spi_dev;
-	SPIConfig hw_spi_cfg;
-	uint8_t spi_af;
-	stm32_gpio_t *nss_gpio;
-	int nss_pin;
-	stm32_gpio_t *sck_gpio;
-	int sck_pin;
-	stm32_gpio_t *mosi_gpio;
-	int mosi_pin;
-	stm32_gpio_t *miso_gpio;
-	int miso_pin;
+	SerialDriver *sd;
+	uint8_t sd_af;
+	stm32_gpio_t *TX_gpio; uint8_t TX_pin;
+	stm32_gpio_t *RX_gpio; uint8_t RX_pin;
+	stm32_gpio_t *DE_gpio; uint8_t DE_pin;
+	stm32_gpio_t *DBG_gpio; uint8_t DBG_pin;
+
+	SerialConfig uart_param;
 	AS5x47U_state state;
+	stkalign_t *thread_wa;
+	uint32_t thread_wa_size;
 } AS5x47U_config_t;
 
 typedef struct {

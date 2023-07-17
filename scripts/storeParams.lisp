@@ -1,5 +1,5 @@
 ;set id
-(eeprom-store-i 0 4)
+(eeprom-store-i 0 9)
 ;set
 
 (def id (eeprom-read-i 0))
@@ -64,7 +64,26 @@
 (def adcZero 1.688)
 (def txId 0x11f0u32)
 (def minPosMm -55.0)
-(def maxPosMm 55.0)
+(def maxPosMm 72.0)
+(def actType 1)
+))
+
+(if (= id 8) (progn
+(def mvPerMm 16.094)
+(def adcZero 1.657)
+(def txId 0x10f0u32)
+(def minPosMm 1)
+(def maxPosMm 24)
+(def actType 2)
+))
+
+;new motor
+(if (= id 9) (progn
+(def mvPerMm 19.217)
+(def adcZero 1.496)
+(def txId 0x11f0u32)
+(def minPosMm -55)
+(def maxPosMm 72)
 (def actType 1)
 ))
 

@@ -129,10 +129,10 @@
 #define ADC_VOLTS(ch)			((float)ADC_Value[ch] / 4096.0 * V_REG)
 
 // COMM-port ADC GPIOs
-#define HW_ADC_EXT_GPIO			GPIOA
-#define HW_ADC_EXT_PIN			5
-#define HW_ADC_EXT2_GPIO		GPIOA
-#define HW_ADC_EXT2_PIN			6
+//#define HW_ADC_EXT_GPIO			GPIOA
+//#define HW_ADC_EXT_PIN			5
+//#define HW_ADC_EXT2_GPIO		GPIOA
+//#define HW_ADC_EXT2_PIN			6
 
 // UART Peripheral
 #define HW_UART_DEV				SD3

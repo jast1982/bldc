@@ -147,30 +147,25 @@ TS5700N8501_config_t encoder_cfg_TS5700N8501 = {
 		{0}
 };
 
-void enc_as5x47u_spi_callback(SPIDriver *pspi);
-AS5x47U_config_t encoder_cfg_as5x47u = {
-#ifdef HW_SPI_DEV
-		&HW_SPI_DEV, // spi_dev
-		{//HARDWARE SPI CONFIG
-				enc_as5x47u_spi_callback, HW_SPI_PORT_NSS, HW_SPI_PIN_NSS, SPI_BaudRatePrescaler_32 |
-				SPI_CR1_CPHA | SPI_DATASIZE_8BIT
-		},
 
-		HW_SPI_GPIO_AF,
-		/*NSS*/HW_SPI_PORT_NSS, HW_SPI_PIN_NSS,
-		/*SCK*/HW_SPI_PORT_SCK, HW_SPI_PIN_SCK,
-		/*MOSI*/HW_SPI_PORT_MOSI, HW_SPI_PIN_MOSI,
-		/*MISO*/HW_SPI_PORT_MISO, HW_SPI_PIN_MISO,
-#else
-		0,
-		{0},
-		0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-#endif
+AS5x47U_config_t encoder_cfg_as5x47u = {
+		&HW_UART_DEV,
+		HW_UART_GPIO_AF,
+		/*UART PINOUT*/
+		HW_UART_TX_PORT, HW_UART_TX_PIN,
+		HW_UART_RX_PORT, HW_UART_RX_PIN,
+		HW_UART_DE_PORT, HW_UART_DE_PIN,
+		HW_HALL_ENC_GPIO2, HW_HALL_ENC_PIN2,
+		{// UART CONFIG
+				2000000,
+				0,
+				USART_CR2_LINEN,
+				0
+		},
 		{0}, // State
+		NULL,
+		0
+
 };
 
 // Spi Handler for bissC

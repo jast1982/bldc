@@ -45,7 +45,6 @@ void enc_as5x47u_deinit(AS5x47U_config_t *cfg);
  */
 void enc_as5x47u_routine(AS5x47U_config_t *cfg);
 
-// Macros
-#define AS5x47U_LAST_ANGLE(cfg)		((cfg)->state.last_enc_angle)
+
 
 #endif /* ENC_AS5x47U_H_ */

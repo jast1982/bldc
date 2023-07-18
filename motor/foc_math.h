@@ -214,7 +214,7 @@ typedef struct {
 	float m_servo_cur_pos_index;
 	float m_servo_power;
 	bool m_servo_i_en;
-	float m_servo_filtered_change;
+	float m_servo_filtered_speed;
 
 	bool m_servo_plot_en;
 	uint8_t m_servo_div_cnt;

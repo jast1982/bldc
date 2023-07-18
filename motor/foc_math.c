@@ -342,10 +342,10 @@ void foc_svm(float alpha, float beta, uint32_t PWMFullDutyCycle,
 #define LIMIT180(f) {while (f>180.0f) f-=360.0f;while (f<-180.0f) f+=360.0f;}
 #define FSIGN(a) ( ( (a) < 0.0f )  ?  -1.0f   : 1.0f )
 #define ABS(a) ( ( (a) < 0.0f )  ?  -a   : a )
-#define MAX_ANGLE_DIFF 90.0f
-#define MAX_BREAK_ANGLE 960.0f
+#define MAX_ANGLE_DIFF 100.0f
+#define MAX_BREAK_ANGLE 2200.0f
 #define MAX_BREAK_ANGLE_SPEED 25000.0f
-#define MAX_ACCELERATION_DEG_S2 250.0f
+#define MAX_ACCELERATION_DEG_S2 250000.0f
 #define MAX_ACCELERATION (MAX_ACCELERATION_DEG_S2/10000.0f)
 #define MAX_ANGLE_CHANGE (360.0f*150000.0f/14.0f/60.0f/10000.0f) //assuming 100.000erpm as max speed
 #define ANGLE_INPUT_FILTER_CONSTANT (0.0f)
@@ -398,33 +398,7 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
     motor->m_servo_current_pos=motor->m_servo_cur_pos_index*360.0f+angle_now;
 
 
-    if (motor->m_servo_plot_en)
-    		{
-    			motor->m_servo_div_cnt++;
-    			motor->m_servo_div_cnt%=200;
 
-    			if (motor->m_servo_div_cnt==0)
-    			{
-
-    				commands_plot_set_graph(0);
-    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_desired_pos);
-
-    				commands_plot_set_graph(1);
-    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_current_pos);
-
-    				commands_plot_set_graph(2);
-    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_set_pos);
-    				//	commands_send_plot_points(motor->m_hfi_plot_sample, (double)RADPS2RPM_f(motor->m_motor_state.speed_rad_s));
-
-    				commands_plot_set_graph(3);
-    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_cur_pos_index);
-    			    //commands_send_plot_points(motor->m_hfi_plot_sample,(double)posDiff);
-    //				commands_send_plot_points(motor->m_hfi_plot_sample,(double) (motor->m_motor_state.i_bus*motor->m_motor_state.v_bus));
-
-    				motor->m_hfi_plot_sample++;
-    			}
-
-    		}
 	float p_term;
 	float d_term;
 	float d_term_proc;
@@ -456,33 +430,77 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
 
 		//calculate change based on rpm and dt
 
-		float change=speed*((360.0f)/(14.0*60.0f))*dt;
-
-		if (change > motor->m_servo_filtered_change+MAX_ACCELERATION)
-			motor->m_servo_filtered_change+=MAX_ACCELERATION;
-		else if (change < motor->m_servo_filtered_change-MAX_ACCELERATION)
-			motor->m_servo_filtered_change-=MAX_ACCELERATION;
+		if (speed>motor->m_servo_filtered_speed+MAX_ACCELERATION)
+			motor->m_servo_filtered_speed+=MAX_ACCELERATION;
+		else if (speed<motor->m_servo_filtered_speed-MAX_ACCELERATION)
+			motor->m_servo_filtered_speed-=MAX_ACCELERATION;
 		else
-			motor->m_servo_filtered_change=change;
+			motor->m_servo_filtered_speed=speed;
 
-		motor->m_servo_set_pos+=motor->m_servo_filtered_change;
+
+		float change=motor->m_servo_filtered_speed*((360.0f)/(14.0*60.0f))*dt;
+
+		if (posDiff>0.0f)
+		{
+//			if (change<0.0f)
+//				change=0.0f;
+
+			if (change>posDiff)
+				change=posDiff;
+		}else
+		{
+//			if (change>0.0f)
+//				change=0.0f;
+
+			if (change<posDiff)
+				change=posDiff;
+
+		}
+
+		motor->m_servo_set_pos+=change;
 
 		float angleDiff=motor->m_servo_set_pos-motor->m_servo_current_pos;
 
 		if (angleDiff>MAX_ANGLE_DIFF)
 		{
-			motor->m_servo_set_pos=motor->m_servo_current_pos+MAX_ANGLE_DIFF;
+			//motor->m_servo_set_pos=motor->m_servo_current_pos+MAX_ANGLE_DIFF;
 			angleDiff=MAX_ANGLE_DIFF;
 		} else if (angleDiff<-MAX_ANGLE_DIFF)
 		{
-			motor->m_servo_set_pos=motor->m_servo_current_pos-MAX_ANGLE_DIFF;
+			//motor->m_servo_set_pos=motor->m_servo_current_pos-MAX_ANGLE_DIFF;
 			angleDiff=-MAX_ANGLE_DIFF;
 		}
 
 		angle_set=angle_now+angleDiff;
 		LIMIT360(angle_set);
 
+		 if (motor->m_servo_plot_en)
+		    		{
+		    			motor->m_servo_div_cnt++;
+		    			motor->m_servo_div_cnt%=200;
 
+		    			if (motor->m_servo_div_cnt==0)
+		    			{
+
+		    				commands_plot_set_graph(0);
+		    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)posDiff);
+
+		    				commands_plot_set_graph(1);
+		    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)speed);
+
+		    				commands_plot_set_graph(2);
+		    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)motor->m_servo_filtered_speed);
+		    				//	commands_send_plot_points(motor->m_hfi_plot_sample, (double)RADPS2RPM_f(motor->m_motor_state.speed_rad_s));
+
+		    				commands_plot_set_graph(3);
+		    				commands_send_plot_points(motor->m_hfi_plot_sample, (double)change*1000.0);
+		    			    //commands_send_plot_points(motor->m_hfi_plot_sample,(double)posDiff);
+		    //				commands_send_plot_points(motor->m_hfi_plot_sample,(double) (motor->m_motor_state.i_bus*motor->m_motor_state.v_bus));
+
+		    				motor->m_hfi_plot_sample++;
+		    			}
+
+		    		}
 
 	}
 

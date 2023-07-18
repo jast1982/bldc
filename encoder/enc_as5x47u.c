@@ -187,7 +187,23 @@ void enc_as5x47u_routine(AS5x47U_config_t *cfg) {
 					if (uartPkt.flags==0x01)
 					{
 						cfg->state.rawValue=uartPkt.val;
-						cfg->state.angle=(float)(cfg->state.rawValue * 360) / (float)(1 << 14);
+//						float angleDiff=((float)(cfg->state.rawValue * 360) / (float)(1 << 14))-cfg->state.angle;
+//						if(angleDiff>180.0f)
+//							angleDiff-=360.0f;
+//						if(angleDiff<-180.0f)
+//							angleDiff+=360.0f;
+//
+//						angleDiff*=0.3f;
+//						cfg->state.angle+=angleDiff;
+//
+//						if (cfg->state.angle>360.0f)
+//							cfg->state.angle-=360.0f;
+//
+//						if (cfg->state.angle<0.0f)
+//							cfg->state.angle+=360.0f;
+
+						cfg->state.angle=((float)(cfg->state.rawValue * 360) / (float)(1 << 14));
+						//
 						cfg->state.timeout=0;
 						cfg->state.timeoutGlobal=0;
 					}else

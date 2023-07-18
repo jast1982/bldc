@@ -82,8 +82,8 @@
 (def mvPerMm 19.217)
 (def adcZero 1.496)
 (def txId 0x11f0u32)
-(def minPosMm -55)
-(def maxPosMm 72)
+(def minPosMm -58)
+(def maxPosMm 67)
 (def actType 1)
 ))
 

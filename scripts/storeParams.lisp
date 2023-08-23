@@ -1,12 +1,12 @@
 ;set id
-(eeprom-store-i 0 9)
+(eeprom-store-i 0 1)
 ;set
 
 (def id (eeprom-read-i 0))
 
 (if (= id 1) (progn
-(def mvPerMm 16.094)
-(def adcZero 1.657)
+(def mvPerMm 19.217)
+(def adcZero 1.496)
 (def txId 0x10f0u32)
 (def minPosMm 1)
 (def maxPosMm 24)

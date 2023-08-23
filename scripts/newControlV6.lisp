@@ -343,7 +343,7 @@
         (bufset-i16 data-out 2 currentIn)
       ;  (bufset-i16 data-out 2 (* currentIn vbus))
 ;        (bufset-i16 data-out 4 (* rpm 0.02962)) ; 2.692 is the constant to convert to mm/s
-        (bufset-i16 data-out 4 (* #posSense 100)) ; 2.692 is the constant to convert to mm/s
+        (bufset-i16 data-out 4 (* (get-temp-fet) 100)) ; 2.692 is the constant to convert to mm/s
         (def faults (get-encoder-faults))
         (def lastFault (get-fault))
         (if (= ctrlActive 0) (bufset-u8 data-out 6 0x00) (bufset-u8 data-out 6 0xFF))

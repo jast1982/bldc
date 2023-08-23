@@ -685,7 +685,7 @@ void mc_interface_reset_servo_pos(float pos)
 		}
 }
 
-void mc_interface_set_servo_pos_speed(float pos, float erpm)
+void mc_interface_set_servo_pos_speed(float pos, float erpm, float acc, float maxAngle)
 {
 	SHUTDOWN_RESET();
 	volatile mc_configuration *conf = &motor_now()->m_conf;
@@ -704,7 +704,7 @@ void mc_interface_set_servo_pos_speed(float pos, float erpm)
 
 		case MOTOR_TYPE_FOC:
 			if (motor_now()->m_fault_now==FAULT_CODE_NONE)
-				mcpwm_foc_set_servo_pos_speed(pos,erpm);
+				mcpwm_foc_set_servo_pos_speed(pos,erpm, acc, maxAngle);
 			else
 			{
 				if (motor_now()->m_fault_now==FAULT_CODE_ENCODER_SPI)

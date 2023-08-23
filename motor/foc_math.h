@@ -208,6 +208,8 @@ typedef struct {
 	float m_servo_min_pos;
 	float m_servo_desired_pos;
 	float m_servo_max_speed;
+	float m_servo_max_acc;
+	float m_servo_max_angle;
 	bool m_servo_ctrl_en;
 	float m_servo_current_pos;
 	float m_servo_set_pos;

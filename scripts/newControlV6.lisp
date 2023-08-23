@@ -50,6 +50,8 @@
 (define #setPos 0)
 (define #setSpeed 10)
 (define #setFlags 0)  
+(def #setMaxAngle 100)
+(def #setAcc 100)
 (define data-out (array-create 8))
 (define maxSpeed 35000)
 (define lastControlActive 0)
@@ -74,12 +76,15 @@
          (if (= actType 1) (define #setPos (bufget-i16 data 2)) (define #setPos (bufget-i16 data 0)))
         (define #setSpeed (bufget-u8 data 6))
         (define #setFlags (bufget-u8 data 7))
+        (define #setAcc (bufget-u8 data 4))
+        (define #setMaxAngle (bufget-u8 data 5))
+        
         
         
         (if (= #setFlags 0) 
                 (progn
-                (if (= ctrlActive 1) (def triggerCalib 1))
-                (define ctrlActive 0)
+                    (if (= ctrlActive 1) (def triggerCalib 1))
+                    (define ctrlActive 0)
                 )
                  (define ctrlActive 1))
        ; (print "pos:" #setPos #setSpeed #setFlags)
@@ -135,7 +140,7 @@
         (can-send-eid txId (list (bufget-u8 data-out 0) (bufget-u8 data-out 1) (bufget-u8 data-out 2) (bufget-u8 data-out 3) (bufget-u8 data-out 4) (bufget-u8 data-out 5) (bufget-u8 data-out 6) (bufget-u8 data-out 7) ))
         (if (!= lastFault 0) (error-stop "Motor controller fault detected" 3))
         
-        (set-servo-pos-speed (* desPos degPerMm) maxSpeed)
+        (set-servo-pos-speed (* desPos degPerMm) maxSpeed 0 0)
         (def pdiff (abs (- currentPosMm desPos)))
         (if (< pdiff 0.4) (break))
         (sleep 0.01)
@@ -162,7 +167,7 @@
         (can-send-eid txId (list (bufget-u8 data-out 0) (bufget-u8 data-out 1) (bufget-u8 data-out 2) (bufget-u8 data-out 3) (bufget-u8 data-out 4) (bufget-u8 data-out 5) (bufget-u8 data-out 6) (bufget-u8 data-out 7) ))
         (if (!= lastFault 0) (error-stop "Motor controller fault detected" 3))
         
-        (set-servo-pos-speed (* desPos degPerMm) maxSpeed)
+        (set-servo-pos-speed (* desPos degPerMm) maxSpeed 0 0)
         (def pdiff (abs (- currentPosMm desPos)))
         (if (< pdiff 0.4) (break))
         (sleep 0.01)
@@ -191,7 +196,7 @@
         (can-send-eid txId (list (bufget-u8 data-out 0) (bufget-u8 data-out 1) (bufget-u8 data-out 2) (bufget-u8 data-out 3) (bufget-u8 data-out 4) (bufget-u8 data-out 5) (bufget-u8 data-out 6) (bufget-u8 data-out 7) ))
         (if (!= lastFault 0) (error-stop "Motor controller fault detected" 3))
        
-        (set-servo-pos-speed 0 2000)
+        (set-servo-pos-speed 0 2000 0 0)
         (def pdiff (abs currentPosMm))
         (if (< pdiff 0.2) (break))
         (sleep 0.01)
@@ -252,7 +257,7 @@
         (def currentIn (abs (get-current))) 
         (def #positionSensor (get-adc 0))
         
-        (if (> #positionSensor adcCalibPoint) (set-servo-pos-speed -100000 1000) (set-servo-pos-speed 100000 1000))
+        (if (> #positionSensor adcCalibPoint) (set-servo-pos-speed -100000 1000 0 0) (set-servo-pos-speed 100000 1000 0 0))
         
         (if (> currentIn 40.0) (def limitCnt (+ limitCnt 1)) (def limitCnt 0))
         
@@ -343,7 +348,8 @@
         (bufset-i16 data-out 2 currentIn)
       ;  (bufset-i16 data-out 2 (* currentIn vbus))
 ;        (bufset-i16 data-out 4 (* rpm 0.02962)) ; 2.692 is the constant to convert to mm/s
-        (bufset-i16 data-out 4 (* (get-temp-fet) 100)) ; 2.692 is the constant to convert to mm/s
+        (bufset-i8 data-out 4 (get-temp-fet)) ; 2.692 is the constant to convert to mm/s
+        (bufset-i8 data-out 5 (get-temp-mot)) ; 2.692 is the constant to convert to mm/s
         (def faults (get-encoder-faults))
         (def lastFault (get-fault))
         (if (= ctrlActive 0) (bufset-u8 data-out 6 0x00) (bufset-u8 data-out 6 0xFF))
@@ -357,12 +363,15 @@
         (send-data data-out)
         (can-send-eid txId (list (bufget-u8 data-out 0) (bufget-u8 data-out 1) (bufget-u8 data-out 2) (bufget-u8 data-out 3) (bufget-u8 data-out 4) (bufget-u8 data-out 5) (bufget-u8 data-out 6) (bufget-u8 data-out 7) ))
         
-        (if (= errorCodeOut 0) (if (= ctrlActive 1) (set-servo-pos-speed (/ (* #setPos degPerMm) 100) (/ (* maxSpeed #setSpeed) 100) ) (set-handbrake 0.5))
+        (if (= errorCodeOut 0) (if (= ctrlActive 1) (set-servo-pos-speed (/ (* #setPos degPerMm) 100) (/ (* maxSpeed #setSpeed) 100) #setAcc #setMaxAngle) (set-handbrake 0.5))
         )
     
-        (if (= triggerCalib 1) (progn
-            (def triggerCalib 0)
-            (calibrate)
+        (if (> triggerCalib 0) (progn
+            (if (= ctrlActive 0) (def triggerCalib (+ triggerCalib 1)) (def triggerCalib 0)) 
+            (if (> triggerCalib 50) (progn
+                (def triggerCalib 0)
+                (calibrate)
+            ))
         ))
         
         

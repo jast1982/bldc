@@ -800,7 +800,7 @@ void mcpwm_foc_set_servo_power(float power, float enableI)
 		commands_printf("Setting servo power to %5.3f with I-Part NOT enabled \n",(double)power);
 }
 
-void mcpwm_foc_set_servo_pos_speed(float pos, float rpm)
+void mcpwm_foc_set_servo_pos_speed(float pos, float rpm, float acc, float maxAngle)
 {
 	if (pos>get_motor_now()->m_servo_max_pos)
 		get_motor_now()->m_servo_desired_pos=get_motor_now()->m_servo_max_pos;
@@ -810,6 +810,21 @@ void mcpwm_foc_set_servo_pos_speed(float pos, float rpm)
 		get_motor_now()->m_servo_desired_pos=pos;
 
 	get_motor_now()->m_servo_max_speed=fabsf(rpm);
+
+	//sanity check on acceleration in %
+	if ((acc<1.0f) || (acc>100.0f))
+	{
+		get_motor_now()->m_servo_max_acc=1.0f; //default to 100%
+	}else
+		get_motor_now()->m_servo_max_acc=acc/100.0f;
+
+	//sanity check on maxAngle
+	if ((maxAngle<1.0f) || (maxAngle>180.0f))
+		{
+			get_motor_now()->m_servo_max_angle=100.0f;
+		}else
+			get_motor_now()->m_servo_max_angle=maxAngle;
+
 
 
 	if ((get_motor_now()->m_control_mode != CONTROL_MODE_POS) || (get_motor_now()->m_state != MC_STATE_RUNNING))

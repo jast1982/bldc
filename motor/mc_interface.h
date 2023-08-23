@@ -48,7 +48,7 @@ void mc_interface_set_pid_pos(float pos);
 void mc_interface_set_servo_min_pos(float pos);
 void mc_interface_set_servo_max_pos(float pos);
 void mc_interface_reset_servo_pos(float pos);
-void mc_interface_set_servo_pos_speed(float pos, float erpm);
+void mc_interface_set_servo_pos_speed(float pos, float erpm, float acc, float maxAngle);
 void mc_interface_set_servo_power(float power, float enableI);
 
 void mc_interface_set_current(float current);

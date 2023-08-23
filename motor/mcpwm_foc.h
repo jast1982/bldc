@@ -38,7 +38,7 @@ void mcpwm_foc_set_duty(float dutyCycle);
 void mcpwm_foc_set_duty_noramp(float dutyCycle);
 void mcpwm_foc_set_pid_speed(float rpm);
 void mcpwm_foc_set_pid_pos(float pos);
-void mcpwm_foc_set_servo_pos_speed(float pos, float rpm);
+void mcpwm_foc_set_servo_pos_speed(float pos, float rpm, float acc, float maxAngle);
 void mcpwm_foc_set_servo_max_pos(float max);
 void mcpwm_foc_set_servo_min_pos(float min);
 void mcpwm_foc_set_servo_power(float power, float enableI);

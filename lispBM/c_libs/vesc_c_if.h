@@ -407,7 +407,7 @@ typedef struct {
 	void (*mc_set_duty)(float dutyCycle);
 	void (*mc_set_duty_noramp)(float dutyCycle);
 	void (*mc_set_pid_speed)(float rpm);
-	void (*mc_set_servo_pos_speed)(float pos, float erpm);
+	void (*mc_set_servo_pos_speed)(float pos, float erpm, float acc, float maxAngle);
 	void (*mc_set_servo_min_pos)(float pos);
 	void (*mc_set_servo_max_pos)(float pos);
 	void (*mc_reset_servo_pos)(float pos);

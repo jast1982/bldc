@@ -342,11 +342,10 @@ void foc_svm(float alpha, float beta, uint32_t PWMFullDutyCycle,
 #define LIMIT180(f) {while (f>180.0f) f-=360.0f;while (f<-180.0f) f+=360.0f;}
 #define FSIGN(a) ( ( (a) < 0.0f )  ?  -1.0f   : 1.0f )
 #define ABS(a) ( ( (a) < 0.0f )  ?  -a   : a )
-#define MAX_ANGLE_DIFF 100.0f
 #define MAX_BREAK_ANGLE 2200.0f
 #define MAX_BREAK_ANGLE_SPEED 25000.0f
 #define MAX_ACCELERATION_DEG_S2 250000.0f
-#define MAX_ACCELERATION (MAX_ACCELERATION_DEG_S2/10000.0f)
+#define MAX_ACCELERATION (motor->m_servo_max_acc*(MAX_ACCELERATION_DEG_S2/10000.0f))
 #define MAX_ANGLE_CHANGE (360.0f*150000.0f/14.0f/60.0f/10000.0f) //assuming 100.000erpm as max speed
 #define ANGLE_INPUT_FILTER_CONSTANT (0.0f)
 
@@ -461,14 +460,14 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
 
 		float angleDiff=motor->m_servo_set_pos-motor->m_servo_current_pos;
 
-		if (angleDiff>MAX_ANGLE_DIFF)
+		if (angleDiff>motor->m_servo_max_angle)
 		{
-			//motor->m_servo_set_pos=motor->m_servo_current_pos+MAX_ANGLE_DIFF;
-			angleDiff=MAX_ANGLE_DIFF;
-		} else if (angleDiff<-MAX_ANGLE_DIFF)
+			//motor->m_servo_set_pos=motor->m_servo_current_pos+motor->m_servo_max_angle;
+			angleDiff=motor->m_servo_max_angle;
+		} else if (angleDiff<-motor->m_servo_max_angle)
 		{
-			//motor->m_servo_set_pos=motor->m_servo_current_pos-MAX_ANGLE_DIFF;
-			angleDiff=-MAX_ANGLE_DIFF;
+			//motor->m_servo_set_pos=motor->m_servo_current_pos-motor->m_servo_max_angle;
+			angleDiff=-motor->m_servo_max_angle;
 		}
 
 		angle_set=angle_now+angleDiff;

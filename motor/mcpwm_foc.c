@@ -831,6 +831,8 @@ void mcpwm_foc_set_servo_pos_speed(float pos, float rpm, float acc, float maxAng
 	{
 		if (!get_motor_now()->m_servo_ctrl_en)
 		{
+			commands_printf("Setting parameters to %5.3f maxAngle and %5.3f maxAcc \n",(double)get_motor_now()->m_servo_max_angle,get_motor_now()->m_servo_max_acc);
+
 			get_motor_now()->m_servo_current_pos=get_motor_now()->m_servo_cur_pos_index*360.0f+get_motor_now()->m_pos_pid_now;
 			get_motor_now()->m_servo_set_pos=get_motor_now()->m_servo_current_pos;
 		}

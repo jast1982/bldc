@@ -48,7 +48,7 @@
 (def maxPosMm 51.0)
 (def actType 0)
 ))
-
+;left rudder
 (if (= id 6) (progn
 (def mvPerMm 16.075)
 (def adcZero 1.676)

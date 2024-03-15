@@ -22,7 +22,7 @@
     
         (if (> inLimitCnt 15) (break))
         
-        (set-servo-pos-speed desiredPos 800) 
+        (set-servo-pos-speed desiredPos 800 100 100) 
     (sleep 0.01)
 )
 )
@@ -50,7 +50,7 @@
     (progn
                (def adcVal (get-adc 0))
 
-         (set-servo-pos-speed desiredPos 1600) 
+         (set-servo-pos-speed desiredPos 1600 100 100) 
          
          (if (< (abs (- desiredPos (get-servo-pos))) 100) (break))
     (sleep 0.01)

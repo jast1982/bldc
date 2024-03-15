@@ -765,7 +765,7 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 		app_nunchuk_update_output(&chuck_d_tmp);
 	} break;
 
-	case COMM_CUSTOM_APP_DATA:
+	case COMM_SET_APP_DATA:
 		if (appdata_func) {
 			appdata_func(data, len);
 		}
